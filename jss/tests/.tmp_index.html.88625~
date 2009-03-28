@@ -1,0 +1,28 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" >
+<head>
+    <title>Arrayzing Tests</title>
+    <script language="javascript" src="jquery.min.js" type="text/javascript"></script>
+    <script language="javascript" src="testrunner.js" type="text/javascript"></script>
+    <script language="javascript" src="../src/arrayzing.js" type="text/javascript"></script>
+    <script language="javascript" src="../src/arrayzing.string.js" type="text/javascript"></script>
+    <script language="javascript" src="../src/arrayzing.number.js" type="text/javascript"></script>
+    <script language="javascript" src="test-core.js" type="text/javascript"></script>
+    <script language="javascript" src="test-array.js" type="text/javascript"></script>
+    <script language="javascript" src="test-filter.js" type="text/javascript"></script>
+    <script language="javascript" src="test-convert.js" type="text/javascript"></script>
+    <script language="javascript" src="test-element.js" type="text/javascript"></script>
+    <link media="screen" href="testsuite.css" type="text/css" rel="stylesheet"/>
+</head>
+<body>  
+
+    <h1>Arrayzing Tests</h1>
+    <h2 id="banner"></h2>
+    <ol id="tests"></ol>
+    <div id="results"></div>
+    <div id="main"></div>
+
+    <!-- Any HTML you may require for your tests to work properly -->
+
+</body>
+</html>
