@@ -1,4 +1,4 @@
-jQuery.jSS.declare({
+jQuery.jSS.declare("base", {
 	
 	"div.box":
 	{

@@ -1,4 +1,4 @@
-jQuery.jSS.declare({
+jQuery.jSS.declare("overwrite", {
 	"div.box":
 	{
 		padding: "5px",

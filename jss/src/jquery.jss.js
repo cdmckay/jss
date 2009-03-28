@@ -72,10 +72,20 @@ jQuery.extend(
 		
 		/**
 		 * Declare a jSS stylesheet.
+		 * @param {String} [id] An identifier for the stylesheet.
+		 * @param {Object} stylesheet The jSS stylesheet.
 		 */
 		declare: function()
 		{
-			Array.prototype.push.apply(this, arguments);
+			if (typeof arguments[0] == "string") 
+			{
+				this[arguments[0]] = arguments[1];
+				Array.prototype.push.apply(this, Array.prototype.slice.call(arguments, 1));
+			}
+			else
+			{
+				Array.prototype.push.apply(this, arguments);
+			}			
 		},
 		
 		/**
@@ -87,11 +97,26 @@ jQuery.extend(
 			for (var selector in sheet)
 			{				
 				var block = sheet[selector];
-				for (var prop in block)
-				{		
-					processProperty(prop.replace( '_', '-' ), 
-						block[prop], selector);
-				}			
+				
+				if (block.constructor == Array)
+				{
+					for (var i = 0; i < block.length; i++)
+					{
+						for (var prop in block[i])
+						{
+							processProperty(prop.replace( '_', '-' ),
+								block[i][prop], selector);
+						}						
+					} // end for
+				}
+				else
+				{
+					for (var prop in block)
+					{		
+						processProperty(prop.replace( '_', '-' ), 
+							block[prop], selector);
+					}		
+				}						
 			} //end for					
 		},
 		
