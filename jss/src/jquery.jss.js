@@ -1,7 +1,7 @@
 (function($) {
 	
 /**
- * jSS 0.1.0 - CSS-like JavaScript Stylesheets
+ * JSS 0.1.0 - CSS-like JavaScript Stylesheets
  * Copyright (c) 2009 Cameron McKay (couchware.ca/blogs/cam)
  * Licensed under the GPL (GPL-LICENSE.txt) license.
  * @author cdmckay
@@ -9,60 +9,138 @@
 
 /**
  * Processes the CSS property.  This function
- * will intercept special jSS properties and
+ * will intercept special JSS properties and
  * redirect them to the appropriate handler.
  * @param {String} prop
  * @param {String} value
  * @param {String} selector
  */
-function processProperty(prop, value, selector)
+function processProperty(prop, value, selector, sheet)
 {
+	// See if value is an execution command.
+	if (value[0] == "!")
+	{
+		value = sheet[value.substr(1)].call(sheet);
+	}
+	
 	switch (prop)
 	{
-		case "animate":
-			animateProperty(value, selector);
-			return true;
+		case "blur":
+		case "change":
+		case "click":		
+		case "dblclick":
+		case "error":
+		case "focus":
+		case "keydown":
+		case "keypress":
+		case "keyup":
+		case "load":
+		case "mousedown":
+		case "mouseenter":
+		case "mouseleave":
+		case "mousemove":
+		case "mouseout":
+		case "mouseover":
+		case "mouseup":
+		case "resize":
+		case "scroll":
+		case "select":
+		case "submit":
+		case "unload":
+		{
+			var v = parse(value);			
+		
+			$(selector).each(function()
+			{				
+				$(this).bind(prop, 
+				{ 
+					element: this, 
+					"arguments": v["arguments"], 
+					selector: v.selector 
+				}, func[v.fn]);
+			});		
+			break;
+		}								
 		
 		default:
 			$(selector).css(prop, value);
 	}
 }
 
-/**
- * Animates the element using the appropriate 
- * animation effect.
- * @param {String} value
- * @param {String} selector
- */
-function animateProperty(value, selector)
+function parse(value, sheet)
 {
-	var $set = $(selector);
-	switch (value)
+	var a = $.trim(value).split(" ");
+	var fn = a[0]; // Get the function.	
+	
+	var b = a.slice(1);	
+	var args = [];
+	var selector = [];
+	
+	$.each(b, function()
 	{
-		case "fadeIn":
-			$set.fadeIn();
-			break;
-			
-		case "fadeOut":
-			$set.fadeOut();
-			break;
-			
-		case "slideDown":
-			$set.slideDown();
-			break;
-			
-		case "slideOut":
-			$set.slideUp();
-			break;	
-			
-		default:
-			throw new Error("Unrecognized animate value.");
+		if (this[0] == "-") args.push(this);
+		else selector.push(this);
+	});
+	
+	return { "fn": fn, "arguments": args, selector: selector.join(" ") };
+}
+
+var func =
+{
+	"alert": function(event)
+	{
+		alert(event.data.selector);
+	},
+	
+	"fade-out": function(event)
+	{	
+		var data = event.data;
+		
+		var target = (data.selector.length == 0)
+			? data.element 
+			: $(data.selector);
+		
+		var speed = data.arguments.length >= 1
+			? data.arguments[0].substr(1) 
+			: "";	
+		
+		$(target).fadeOut(speed);
+	},
+	
+	"fade-in": function(event)
+	{
+		var data = event.data;
+		
+		var target = (data.selector.length == 0)
+			? data.element 
+			: $(data.selector);
+		
+		var speed = data.arguments.length >= 1
+			? data.arguments[0].substr(1) 
+			: "";
+		
+		$(target).fadeIn(speed);
+	},
+	
+	"toggle": function(event)
+	{
+		var data = event.data;
+		
+		var target = (data.selector.length == 0)
+			? data.element 
+			: $(data.selector);		
+		
+		var speed = data.arguments.length >= 1
+			? data.arguments[0].substr(1) 
+			: "";
+		
+		$(target).toggle(speed);
 	}
 }
 
 jQuery.extend(
 {		
-	jSS:
+	jss:
 	{
 		/** 
 		 * The available stylesheets loaded using script
@@ -71,9 +149,9 @@ jQuery.extend(
 		length: 0,
 		
 		/**
-		 * Declare a jSS stylesheet.
+		 * Declare a JSS stylesheet.
 		 * @param {String} [id] An identifier for the stylesheet.
-		 * @param {Object} stylesheet The jSS stylesheet.
+		 * @param {Object} stylesheet The JSS stylesheet.
 		 */
 		declare: function()
 		{
@@ -89,7 +167,7 @@ jQuery.extend(
 		},
 		
 		/**
-		 * Apply a jSS stylesheet to the current document.
+		 * Apply a JSS stylesheet to the current document.
 		 * @param {Object} sheet
 		 */
 		apply: function(sheet)
@@ -98,23 +176,31 @@ jQuery.extend(
 			{				
 				var block = sheet[selector];
 				
-				if (block.constructor == Array)
+				if (typeof block == "function")
 				{
+					continue;
+				}
+				else if (block.constructor == Array)
+				{					
 					for (var i = 0; i < block.length; i++)
 					{
+						var value;
 						for (var prop in block[i])
-						{
+						{							
+							value = block[i][prop];							
 							processProperty(prop.replace( '_', '-' ),
-								block[i][prop], selector);
+								value, selector, sheet);
 						}						
 					} // end for
 				}
 				else
 				{
+					var value;
 					for (var prop in block)
 					{		
+						value = block[prop];
 						processProperty(prop.replace( '_', '-' ), 
-							block[prop], selector);
+							value, selector, sheet);
 					}		
 				}						
 			} //end for					
@@ -129,7 +215,7 @@ jQuery.extend(
 		},
 		
 		/**
-		 * Get the jSS stylesheet from the web using JSONp.  This
+		 * Get the JSS stylesheet from the web using JSONp.  This
 		 * stylesheet will be automatically applied.
 		 * @param {String} url
 		 */
@@ -140,11 +226,11 @@ jQuery.extend(
 	}	
 });
 
-// Register a ready handler to load the jSS sheets
+// Register a ready handler to load the JSS sheets
 // as soon as the DOM is ready.
 $(function()
 {
-	$.jSS.load();
+	$.jss.load();
 });
 
 })(jQuery);

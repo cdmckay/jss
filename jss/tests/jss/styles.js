@@ -1,4 +1,4 @@
-jQuery.jSS.declare("base", {
+jQuery.jss.declare("base", {
 	
 	"div.box":
 	{
@@ -8,8 +8,7 @@ jQuery.jSS.declare("base", {
 		background: "maroon",
 		color: "white",
 		font_family: 'Impact, sans-serif',
-		display: "none",
-		animate: "slideDown"
+		click: "alert Hello, how are you?"
 	},
 	
 	"span.underline":
