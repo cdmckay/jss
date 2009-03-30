@@ -1,0 +1,54 @@
+property:                value:
+blur, change, click ...  command
+hover                    command; command
+
+command:
+built-in +optional required
+!userfunc +optional required
+
+arguments:
+if prefixed with +, then the argument is optional
+  --example: toggle +slow (#target)
+
+[attribute] if the argument is surrounded in [], it means
+it must be replaced with the current elements attribute of the same name
+  --example: toggle +slow (#target-of-[id])
+  
+there are some pseudo-attributes:
+[offset-top]
+[offset-left]
+[position-top]
+[position-left]
+[scroll-top]
+[scroll-left]
+[width]
+[height]
+[inner-width]
+[inner-height]
+[outer-width]
+[outer-height]
+  
+list of built-in functions:
+
+all jquery effects (fade-in, fade-out, toggle, slide-up, slide-down, ...)
+fade-in [+slow|+normal|+fast|+int]? (selector) [!callback]?
+
+  --example: fade-in +slow (div.target span:first)
+  --example: fade-in +slow (div.target span:first) !callback
+  
+in the second example, the userfunc callback would be called once the fade-in
+completed
+
+set property value [(selector)]?
+  --example: set text-decoration underline
+  --example: set text-decoration underline (div.underline-me)
+
+set-attr attribute value [(selector)]?
+  --example: set-attr src clicked.gif (#target)
+  --example: set-attr src [src-over]
+  
+set-attr can also set pseudo-attributes
+  --example: set-attr scroll-top [scroll-top] + 300 (#target)
+
+remove-attr attribute
+  --example: remove-attr href

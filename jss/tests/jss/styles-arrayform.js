@@ -1,4 +1,4 @@
-jQuery.jss.declare("arrayform", {
+jQuery.jss.declare({
 	
 	"div.box-array":
 	[
@@ -8,8 +8,8 @@ jQuery.jss.declare("arrayform", {
 		{ background: "!chrono" },
 		{ color: "black" },
 		{ font_family: 'Georgia, serif' },
-		{ click: "toggle -slow div.box" }
-	],
+		{ click: "toggle +slow (div.box)" }
+	],				
 		
 	/**
 	 * Checks the current time.  If the minute is

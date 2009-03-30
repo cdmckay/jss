@@ -48,17 +48,19 @@ function processProperty(prop, value, selector, sheet)
 		case "submit":
 		case "unload":
 		{
-			var v = parse(value);			
-		
-			$(selector).each(function()
-			{				
-				$(this).bind(prop, 
-				{ 
-					element: this, 
-					"arguments": v["arguments"], 
-					selector: v.selector 
-				}, func[v.fn]);
-			});		
+			// If the value is an array, then cycle it.
+			if (value.constructor == Array)
+			{
+				for (var i = 0; i < value.length; i++)					
+				{
+					bind(prop, value[i], selector, sheet);
+				}
+			}	
+			else
+			{
+				bind(prop, value, selector, sheet);
+			}		
+			
 			break;
 		}								
 		
@@ -67,22 +69,107 @@ function processProperty(prop, value, selector, sheet)
 	}
 }
 
+/**
+ * Bind the given property type using the contents
+ * of the value, the current selector and the sheet.
+ * @param {Object} prop
+ * @param {Object} value
+ * @param {Object} selector
+ * @param {Object} sheet
+ */
+function bind(prop, value, selector, sheet)
+{
+	// Parse the value.
+	var val = parse(value, sheet);			
+
+	// Select the appropriate elements.
+	$(selector).each(function()
+	{				
+		$(this).bind(prop, 
+		{ 
+			element:   this, 
+			optional:  val.optional,
+			selector:  val.selector,
+			callback:  val.callback
+		}, func[val.fn]);
+	});		
+}
+
+/** A regular expression for finding the selector. */
+var selpat = /\(.+?\)/i;
+
+/**
+ * Parse the passed value and return the separated
+ * data.
+ * @param {Object} value
+ * @param {Object} sheet
+ */
 function parse(value, sheet)
 {
-	var a = $.trim(value).split(" ");
-	var fn = a[0]; // Get the function.	
+	// Get rid of excess whitespace.
+	var a = $.trim(value);
 	
-	var b = a.slice(1);	
-	var args = [];
-	var selector = [];
+	// Extract the selector and remove it.
+	var selector = selpat.exec(a)[0];
+	selector = selector.substr(1, selector.length - 2);
+	a = a.replace(selpat, "");
+			
+	// Split the remaining string.
+	var sp = a.split(" ");
 	
-	$.each(b, function()
+	// Get the function name.
+	var fn = sp[0];
+	
+	// Cycle through the remaining value to
+	// find optional arguments and a callback.		
+	var optional = [];
+	var callback = function(){};
+	
+	$.each(sp, function()
 	{
-		if (this[0] == "-") args.push(this);
-		else selector.push(this);
+		if (this[0] == "+") optional.push(this.substr(1));
+		else if (this[0] == "!") callback = sheet[this.substr(1)];		
 	});
 	
-	return { "fn": fn, "arguments": args, selector: selector.join(" ") };
+	return { 
+		fn: fn, 
+		optional: optional,
+		selector: selector,
+		callback: callback
+	};
+}
+
+/**
+ * A convenience function for determining
+ * what data to pass to an animation function.
+ * @param {Object} data
+ */
+function animationAssist(data)
+{
+	var target = (data.selector.length == 0)
+		? data.element 
+		: $(data.selector);
+	
+	var speed = data.optional.length >= 1
+		? data.optional[0]
+		: "";	
+		
+	switch (speed)
+	{
+		case "slow":
+		case "normal":
+		case "fast":
+			break;
+			
+		default:
+			speed = parseInt(speed);
+	}
+		
+	return { 
+		target: target, 
+		speed: speed, 
+		callback: data.callback 
+	}
 }
 
 var func =
@@ -94,47 +181,20 @@ var func =
 	
 	"fade-out": function(event)
 	{	
-		var data = event.data;
-		
-		var target = (data.selector.length == 0)
-			? data.element 
-			: $(data.selector);
-		
-		var speed = data.arguments.length >= 1
-			? data.arguments[0].substr(1) 
-			: "";	
-		
-		$(target).fadeOut(speed);
+		var data = animationAssist(event.data);		
+		$(data.target).fadeOut(data.speed, data.callback);
 	},
 	
 	"fade-in": function(event)
 	{
-		var data = event.data;
-		
-		var target = (data.selector.length == 0)
-			? data.element 
-			: $(data.selector);
-		
-		var speed = data.arguments.length >= 1
-			? data.arguments[0].substr(1) 
-			: "";
-		
-		$(target).fadeIn(speed);
+		var data = animationAssist(event.data);		
+		$(data.target).fadeIn(data.speed, data.callback);
 	},
 	
 	"toggle": function(event)
 	{
-		var data = event.data;
-		
-		var target = (data.selector.length == 0)
-			? data.element 
-			: $(data.selector);		
-		
-		var speed = data.arguments.length >= 1
-			? data.arguments[0].substr(1) 
-			: "";
-		
-		$(target).toggle(speed);
+		var data = animationAssist(event.data);		
+		$(data.target).toggle(data.speed, data.callback);
 	}
 }
 
