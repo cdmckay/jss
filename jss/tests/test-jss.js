@@ -1,4 +1,4 @@
 $(function()
 {
-	$("#time").text(new Date().toString());
+	$("#time").text(new Date().toString());	
 });

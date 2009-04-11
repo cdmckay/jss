@@ -8,14 +8,14 @@
  */
 
 /**
- * Processes the CSS property.  This function
+ * Processes the CSS declaration.  This function
  * will intercept special JSS properties and
  * redirect them to the appropriate handler.
  * @param {String} prop
  * @param {String} value
- * @param {String} selector
+ * @param {String} blocksel
  */
-function processProperty(prop, value, selector, sheet)
+function processDeclartion(sheet, blocksel, prop, value)
 {
 	// See if value is an execution command.
 	if (value[0] == "!")
@@ -47,95 +47,150 @@ function processProperty(prop, value, selector, sheet)
 		case "select":
 		case "submit":
 		case "unload":
+		case "hover":
 		{
 			// If the value is an array, then cycle it.
 			if (value.constructor == Array)
 			{
 				for (var i = 0; i < value.length; i++)					
 				{
-					bind(prop, value[i], selector, sheet);
+					processExpression(sheet, blocksel, prop, value[i]);
 				}
 			}	
 			else
 			{
-				bind(prop, value, selector, sheet);
+				processExpression(sheet, blocksel, prop, value);
 			}		
 			
 			break;
-		}								
+		}						
 		
 		default:
-			$(selector).css(prop, value);
+			$(blocksel).css(prop, value);
 	}
 }
 
 /**
- * Bind the given property type using the contents
- * of the value, the current selector and the sheet.
- * @param {Object} prop
- * @param {Object} value
- * @param {Object} selector
- * @param {Object} sheet
+ * This funtion replaces all {attr} expressions with their
+ * corresponding attributes, and then returns the new string.
+ * If the attribute is not found, the attribute is replaced
+ * with an empty string.
+ * @param {String} expression
+ * @param {String} blocksel The block selector.
+ * @param {String} target The target selector.
+ * @return The expression with all the attributes replaced.
+ * @type String
  */
-function bind(prop, value, selector, sheet)
-{
-	// Parse the value.
-	var val = parse(value, sheet);			
-
-	// Select the appropriate elements.
-	$(selector).each(function()
-	{				
-		$(this).bind(prop, 
-		{ 
-			element:   this, 
-			optional:  val.optional,
-			selector:  val.selector,
-			callback:  val.callback
-		}, func[val.fn]);
-	});		
+function replaceAttributes(expression, blocksel, target)
+{			
+	if (expression.length == 0) return expression;		
+	
+	//alert(expression);		
+	
+	// Get the blocksel and the target.
+	var $blocksel = $(blocksel);
+	var $target = $(target);
+	
+	// Find all the attributes.
+	var regex = /(\{[\w-]+\})/g;	
+	var result;
+	
+	// The string to return.
+	var ret = expression;
+	
+	// For each attribute, replace it with the appropriate
+	// value.
+	while((result = regex.exec(expression)) != null)
+	{
+		// The current match.
+		var match = result[0];
+		
+		// Remove the { and }.
+		var temp = match.substr(1, match.length - 2);		
+		
+		// Find the variable.
+		var rep = $blocksel.attr(temp);
+		
+		//alert(blocksel);
+		
+		if (rep == undefined) rep = "";
+		
+		//alert($blocksel.length);
+		//alert(temp + " = " + rep);
+		
+		ret = ret.replace(match, rep);
+	}
+	
+	return ret;
 }
 
-/** A regular expression for finding the selector. */
-var selpat = /\(.+?\)/i;
+/**
+ * Process a JSS expression.
+ * @param {Object} sheet
+ * @param {Object} blocksel
+ * @param {Object} prop
+ * @param {Object} value
+ */
+function processExpression(sheet, blocksel, prop, value)
+{
+	if (prop == "hover")
+	{
+		var a = value.split("|");
+		processExpression(sheet, blocksel, "mouseenter", $.trim(a[0]));
+		processExpression(sheet, blocksel, "mouseleave", $.trim(a[1]));
+		return;
+	}	
+	
+	var parts = parseExpression(replaceAttributes(value, blocksel));
+	
+	if (parts.command == undefined)
+		throw Error("No command specified in expression");			
+	
+	$(blocksel).bind(
+		prop, 
+		{ 
+			element:   $(blocksel), 
+			selector:  parts.selector,
+			arguments: parts.arguments,
+			callback:  sheet[parts.callback]
+		},
+		$.jss.command[parts.command]
+	);
+}
+
+/** A regular expression breaking down a JSS expression. */
+var expression = /^([\w-]+)(\s+\((.+)\))?(.+?)?(\s+\!(\w+))?$/i;
 
 /**
- * Parse the passed value and return the separated
+ * Parse the passed expression and return the separated
  * data.
  * @param {Object} value
- * @param {Object} sheet
  */
-function parse(value, sheet)
+function parseExpression(value)
 {
 	// Get rid of excess whitespace.
-	var a = $.trim(value);
+	var value = $.trim(value);
+	var result = expression.exec(value);
 	
-	// Extract the selector and remove it.
-	var selector = selpat.exec(a)[0];
-	selector = selector.substr(1, selector.length - 2);
-	a = a.replace(selpat, "");
+	// Get the command name.
+	var command = result[1];
 			
-	// Split the remaining string.
-	var sp = a.split(" ");
+	// Extract the selector and remove it.
+	var selector = result[3];
 	
-	// Get the function name.
-	var fn = sp[0];
+	// The arguments.  The $ is used so as to not conflict
+	// with the function arguments.	
+	var $arguments = result[4];
 	
-	// Cycle through the remaining value to
-	// find optional arguments and a callback.		
-	var optional = [];
-	var callback = function(){};
-	
-	$.each(sp, function()
-	{
-		if (this[0] == "+") optional.push(this.substr(1));
-		else if (this[0] == "!") callback = sheet[this.substr(1)];		
-	});
-	
+	// The callback, if it's defined.
+	var callback = result[6];	
+		
 	return { 
-		fn: fn, 
-		optional: optional,
-		selector: selector,
-		callback: callback
+		"command": $.trim(command),
+		"selector": $.trim(selector),
+		"arguments": $.trim($arguments),
+		"value": $.trim(value),
+		"callback": $.trim(callback)
 	};
 }
 
@@ -144,16 +199,14 @@ function parse(value, sheet)
  * what data to pass to an animation function.
  * @param {Object} data
  */
-function animationAssist(data)
-{
+function effectPreprocessor(data)
+{	
 	var target = (data.selector.length == 0)
 		? data.element 
-		: $(data.selector);
-	
-	var speed = data.optional.length >= 1
-		? data.optional[0]
-		: "";	
-		
+		: data.selector;	
+						
+	var speed = data.arguments == undefined ? "0" : data.arguments;
+
 	switch (speed)
 	{
 		case "slow":
@@ -163,45 +216,91 @@ function animationAssist(data)
 			
 		default:
 			speed = parseInt(speed);
-	}
-		
+	}					
+	
+	if (isNaN(speed)) speed = "0";
+			
 	return { 
 		target: target, 
 		speed: speed, 
-		callback: data.callback 
-	}
+		callback: data.callback
+	}	
 }
 
-var func =
+function attrPreprocessor(data)
 {
-	"alert": function(event)
-	{
-		alert(event.data.selector);
-	},
+	var target = (data.selector.length == 0)
+		? data.element 
+		: data.selector;
+		
+	var a = data.arguments;	
+	var attr = $.trim(a.split(/\s+/)[0]);
+	var value = $.trim(a.substr(a.indexOf(" ")));
 	
-	"fade-out": function(event)
-	{	
-		var data = animationAssist(event.data);		
-		$(data.target).fadeOut(data.speed, data.callback);
-	},
-	
-	"fade-in": function(event)
-	{
-		var data = animationAssist(event.data);		
-		$(data.target).fadeIn(data.speed, data.callback);
-	},
-	
-	"toggle": function(event)
-	{
-		var data = animationAssist(event.data);		
-		$(data.target).toggle(data.speed, data.callback);
-	}
+	return {
+		target: target,
+		attr: attr,
+		value: value
+	}	
 }
 
 jQuery.extend(
 {		
 	jss:
 	{
+		command:
+		{
+			"alert": function(event)
+			{
+				alert(event.data.arguments);
+			},
+			
+			"fade-out": function(event)
+			{	
+				var data = effectPreprocessor(event.data);		
+				$(data.target).fadeOut(data.speed, data.callback);
+			},
+			
+			"fade-in": function(event)
+			{
+				var data = effectPreprocessor(event.data);		
+				$(data.target).fadeIn(data.speed, data.callback);
+			},
+			
+			"slide-up": function(event)
+			{
+				
+			},
+			
+			"slide-down": function(event)
+			{
+				
+			},
+			
+			"toggle": function(event)
+			{
+				var data = effectPreprocessor(event.data);
+				$(data.target).toggle(data.speed, data.callback);
+			},
+			
+			"set-attr": function(event)
+			{
+				var data = attrPreprocessor(event.data);	
+				$(data.target).attr(data.attr, data.value);
+			},
+			
+			"remove-attr": function(event)
+			{
+				var data = attrPreprocessor(event.data);	
+				$(data.target).removeAttr(data.attr);
+			},
+			
+			"set-prop": function(event)
+			{
+				
+			}						
+		},
+		
 		/** 
 		 * The available stylesheets loaded using script
 		 * tags.
@@ -248,8 +347,8 @@ jQuery.extend(
 						for (var prop in block[i])
 						{							
 							value = block[i][prop];							
-							processProperty(prop.replace( '_', '-' ),
-								value, selector, sheet);
+							processDeclartion(sheet, selector, 
+								prop.replace( '_', '-' ), value);
 						}						
 					} // end for
 				}
@@ -259,8 +358,8 @@ jQuery.extend(
 					for (var prop in block)
 					{		
 						value = block[prop];
-						processProperty(prop.replace( '_', '-' ), 
-							value, selector, sheet);
+						processDeclartion(sheet, selector, 
+							prop.replace( '_', '-' ), value);
 					}		
 				}						
 			} //end for					

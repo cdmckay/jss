@@ -7,13 +7,23 @@ jQuery.jss.declare("base", {
 		border: "1px red solid",
 		background: "maroon",
 		color: "white",
-		font_family: 'Impact, sans-serif'
+		font_family: 'Impact, sans-serif',		
+	},
+	
+	"div.box:first":
+	{
+		hover: "fade-out (.box-array) | fade-in (.box-array)"
+	},
+	
+	"div.box a":
+	{
+		click: "remove-attr href"
 	},
 	
 	"span.underline":
 	{
-		text_decoration: "underline"
-	},
+		text_decoration: "underline"		
+	},		
 	
 	/* 
 	 * Implements a collapsible div that opens and closes
@@ -21,17 +31,27 @@ jQuery.jss.declare("base", {
 	 */
 	"div.collapse span:first":
 	{
-		click: "toggle +normal (div.collapse div:first) !callback"
+		click: "toggle (div.collapse div:first) normal !callback"
 	},			
 	
 	"callback": function()
 	{
 		alert("Called back!");
-	}
+	},
 		
-//	"img[src-over]":
+	"img[src-over]":
+	{
+		hover: "set-attr src {src-over} | set-attr src {src-out}"
+	}
+
+//	"div.hover-other":
 //	{
-//		hover: "set-attr src [src-over]; set-attr src [src-out]"
+//		hover: "set-attr (img#target) src {src-over} | set-attr (img#target) src {src-out}"
+//	}
+
+//	"div.hover-other":
+//	{
+//		hover: "set-attr (img#target) src {@src-over-from-blocksel} | set-attr (img#target) src {@src-out-from-blocksel}"
 //	}
 	
 });

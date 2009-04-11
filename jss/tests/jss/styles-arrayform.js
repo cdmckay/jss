@@ -8,7 +8,7 @@ jQuery.jss.declare({
 		{ background: "!chrono" },
 		{ color: "black" },
 		{ font_family: 'Georgia, serif' },
-		{ click: "toggle +slow (div.box)" }
+		{ click: "toggle (div.box) slow" }
 	],				
 		
 	/**
