@@ -26,14 +26,44 @@
  * @author cdmckay
  */
 
+// The "event.data" variable is how JSS custom commands are possible.
+// The data variable is a hash containing the following keys:
+//			sheet:     the JSS sheet that the command was called from
+//			blocksel:  the JSS block selector the command was called from
+//			prop:      the property the command was called from
+//			value:     the value the command was detected in
+//			selector:  the selector defined in the command
+//			arguments: the array of arguments given to the command
+//			callback:  the first function argument given to the command
+//			fnlist:    the array of functions given to the command
+//
+// For example, if this plugin was invoked using the following JSS:
+//
+// "#test-no-quote":
+// {					
+//   click: "confirm (#message) Are you happy today? Sweet! 'Less sweet.' !truefn !falsefn"
+// }
+//
+// Then the variables would be:
+//
+//			sheet:     the object that has "#test-no-quote" as it's property
+//			blocksel:  "#test-no-quote"
+//			prop:      "click"
+//			value:     "confirm (#message) Are you happy today? Sweet! 'Less sweet.'"
+//			selector:  "#message"
+//			arguments: [ "Are", "you", "happy", "today?", "Sweet!", "Less sweet." ]
+//			callback:  truefn()
+//			fnlist:    [ truefn(), falsefn() ]
+//
+// By following the rest of the code here, you can see how these values may be used
+// to create a plugin.	
+
 $.extend($.jss.command, 
 {
 	"confirm": function(event)
 	{
 		// A convenience variable.
-		var data = event.data;
-		
-		// The data variable is 
+		var data = event.data;					
 		
 		// Confirm can run under two conditions:
 		// 1. If there is at least 1 argument and at least 2 functions.
@@ -73,6 +103,9 @@ $.extend($.jss.command,
 		var str = result ? t : f;
 		if (str.constructor == String)
 		{
+			// This code determines which selector to use.
+			// If a selector is defined by the command, it is used,
+			// otherwise, the block selector is used.
 			var sel;
 			if (data.selector != undefined)
 			{
