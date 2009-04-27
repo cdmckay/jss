@@ -1,0 +1,56 @@
+<html>
+	<head>
+		<title>JSS Confirm Tests</title>
+		<script src="../jquery.min.js" type="text/javascript"></script>
+		<script src="../../src/jquery.jss.js" type="text/javascript"></script>
+		<script src="../../src/plugins/jquery.jss.confirm.js" type="text/javascript"></script>
+		<script type="text/javascript">
+			$.jss.declare({
+				".box":
+				{
+					background: "maroon",
+					border: "1px red solid",
+					color: "white",
+					font_family: "Trebuchet, 'Trebuchet MS'",
+					padding: "5px"
+				},
+				
+				"#test":
+				{					
+					click: "confirm (#message) Are you happy today? !truefn !falsefn"
+				},
+								
+				"#test-str":
+				{					
+					click: "confirm (#message) 'Are you happy today?' 'Sweet!' 'Less sweet.'"
+				},
+				
+				"#test-no-quote":
+				{					
+					click: "confirm (#message) Are you happy today? Sweet! 'Less sweet.'"
+				},
+				
+				"#message":
+				{
+					margin_top: "10px"
+				},
+				
+				"truefn": function()
+				{
+					return "Great to hear it!";
+				},
+				
+				"falsefn": function()
+				{
+					return "Oh well.";
+				}
+			});
+		</script>		
+	</head>
+	<body>
+		<div id="test" class="box">Click me.</div>
+		<div id="test-str" class="box">Click me after.</div>
+		<div id="test-no-quote" class="box">Click me after.</div>
+		<div id="message" class="box">Click each of those above me.</div>
+	</body>
+</html>

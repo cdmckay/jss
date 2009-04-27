@@ -16,13 +16,15 @@ jQuery.jss.declare("base", {
 	},
 	
 	"div.box a":
-	{
-		click: "remove-attr href"
+	{		
+		click: "set-css font-family {click-font}",
+		click: "alert (div.box) 'The padding is {@padding}.'"
 	},
 	
 	"span.underline":
 	{
-		text_decoration: "underline"		
+		text_decoration: "underline",
+		click: "alert (#eg) The position of #eg is {@position-left},{@position-top}."		
 	},		
 	
 	/* 
@@ -41,17 +43,18 @@ jQuery.jss.declare("base", {
 		
 	"img[src-over]":
 	{
-		hover: "set-attr src {src-over} | set-attr src {src-out}"
+		hover: "set-attr src {src-over} | set-attr src {src-out}",
+		click: "alert The dimensions of this element are {width}x{height}."
+	},
+
+	"div.hover-other":
+	{
+		hover: "set-attr (#eg) src {@src-over} | set-attr (#eg) src {@src-out}"
 	}
 
 //	"div.hover-other":
 //	{
-//		hover: "set-attr (img#target) src {src-over} | set-attr (img#target) src {src-out}"
-//	}
-
-//	"div.hover-other":
-//	{
-//		hover: "set-attr (img#target) src {@src-over-from-blocksel} | set-attr (img#target) src {@src-out-from-blocksel}"
+//		hover: "set-attr (img#target) src {^src-over-from-blocksel} | set-attr (img#target) src {^src-out-from-blocksel}"
 //	}
 	
 });
