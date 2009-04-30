@@ -106,18 +106,18 @@ $.extend($.jss.command,
 			// This code determines which selector to use.
 			// If a selector is defined by the command, it is used,
 			// otherwise, the block selector is used.
-			var sel;
-			if (data.selector != undefined)
+			var target;
+			if (data.selector.length != 0)
 			{
-				sel = data.selector;
+				target = data.selector;
 			}
 			else
-			{
-				sel = data.blocksel;
+			{			
+				target = event.currentTarget;
 			}
-			
-			$(sel).html(str);
-		}
+						
+			$(target).html(str);
+		}		
 	}
 })
 

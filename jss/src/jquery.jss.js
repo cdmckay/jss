@@ -149,12 +149,44 @@ function replaceAttributes(expression, blocksel, selector)
 	return ret;
 }
 
-function getAttribute($$, name)
+/**
+ * Converts a string from css-case to camelCase.
+ * @param {String} text
+ * @return The css-case string in camelCase.
+ * @type String 
+ */
+function toCamelCase(text)
 {
+	var ret = [];
+	for (var i = 0; i < text.length; i++)
+	{
+		var ch = text[i];
+		if (ch == '-')
+		{
+			if (i + 1 < text.length) ret.push(text[i + 1].toUpperCase());
+			i++;
+		}
+		else
+		{
+			ret.push(ch);
+		}
+	}
+	return ret.join("");
+}
+
+/**
+ * Get the attribute value of the passed jQuery ($$) object with the passed name.
+ * @param {jQuery} $$
+ * @param {String} name
+ * @return The attribute value.
+ * @type String
+ */
+function getAttribute($$, name)
+{	
 	var attr;
 	switch (name)
 	{
-		case "offset-top":
+		case "offset-top":			
 			attr = $$.offset().top;
 			break;
 			
@@ -171,43 +203,27 @@ function getAttribute($$, name)
 			break;
 			
 		case "scroll-top":
-			attr = $$.scrollTop();
-			break;
-			
 		case "scroll-left":
-			attr = $$.scrollLeft();
-			break;
-			
 		case "width":
-			attr = $$.width();
-			break;
-			
 		case "height":
-			attr = $$.height();
-			break;
-			
 		case "inner-width":
-			attr = $$.innerWidth();
-			break;
-			
 		case "inner-height":
-			attr = $$.innerHeight();
-			break;
-			
 		case "outer-width":
-			attr = $$.outerWidth();
-			break;			
-			
 		case "outer-height":
-			attr = $$.outerHeight();
+			attr = $$[toCamelCase(name)]();
 			break;
-		
+					
 		default:
 			attr = $$.attr(name);
 			if (attr === undefined) attr = $$.css(name);
 	}
 	
 	return attr;
+}
+
+function setAttribute($$, name, value)
+{
+	
 }
 
 /**
@@ -315,18 +331,21 @@ function parseExpression(value)
 	};
 }
 
+function determineTarget(event)
+{
+	return (event.data.selector.length == 0)
+		? event.currentTarget
+		: event.data.selector;		
+}
+
 /**
  * A convenience function for determining
  * what data to pass to an animation function.
  * @param {Object} data
  */
 function effectPreprocessor(data)
-{	
-	var target = (data.selector.length == 0)
-		? data.blocksel 
-		: data.selector;	
-						
-	var speed = data.arguments.length > 0 ? data.arguments[0] : "0";
+{							
+	var speed  = data.arguments.length > 0 ? data.arguments[0] : "normal";
 
 	switch (speed)
 	{
@@ -341,8 +360,7 @@ function effectPreprocessor(data)
 	
 	if (isNaN(speed)) speed = "0";
 			
-	return { 
-		target: target, 
+	return { 		
 		speed: speed, 
 		callback: data.callback
 	}	
@@ -358,17 +376,12 @@ function effectPreprocessor(data)
 function attrPreprocessor(data)
 {
 	if (data.arguments.length < 2) return false;
-	
-	var target = (data.selector.length == 0)
-		? data.blocksel
-		: data.selector;			
-		
+						
 	var a = data.arguments;	
 	var name =  a[0].replace( "_", "-", "g" );
-	var value = a[1];
+	var value = a.slice(1).join(" ");
 	
-	return {
-		target: target,
+	return {		
 		name: name,
 		value: value
 	}	
@@ -387,57 +400,99 @@ jQuery.extend(
 			
 			"fade-out": function(event)
 			{	
+				var target = determineTarget(event);
 				var data = effectPreprocessor(event.data);		
-				$(data.target).fadeOut(data.speed, data.callback);
+				$(target).fadeOut(data.speed, data.callback);
 			},
 			
 			"fade-in": function(event)
 			{
+				var target = determineTarget(event);
 				var data = effectPreprocessor(event.data);		
-				$(data.target).fadeIn(data.speed, data.callback);
+				$(target).fadeIn(data.speed, data.callback);
 			},
 			
 			"slide-up": function(event)
 			{
+				var target = determineTarget(event);
 				var data = effectPreprocessor(event.data);		
-				$(data.target).slideUp(data.speed, data.callback);
+				$(target).slideUp(data.speed, data.callback);
 			},
 			
 			"slide-down": function(event)
 			{
+				var target = determineTarget(event);
 				var data = effectPreprocessor(event.data);		
-				$(data.target).slideDown(data.speed, data.callback);
+				$(target).slideDown(data.speed, data.callback);
 			},
 			
 			"slide-toggle": function(event)
 			{
+				var target = determineTarget(event);
 				var data = effectPreprocessor(event.data);		
-				$(data.target).slideToggle(data.speed, data.callback);
+				$(target).slideToggle(data.speed, data.callback);
 			},
 			
 			"toggle": function(event)
 			{
+				var target = determineTarget(event);
 				var data = effectPreprocessor(event.data);
-				$(data.target).toggle(data.speed, data.callback);
+				$(target).toggle(data.speed, data.callback);
 			},
 			
 			"set-attr": function(event)
 			{
+				var target = determineTarget(event);
 				var data = attrPreprocessor(event.data);	
-				$(data.target).attr(data.name, data.value);
+				$(target).attr(data.name, data.value);
 			},
 			
 			"remove-attr": function(event)
 			{
+				var target = determineTarget(event);
 				var data = attrPreprocessor(event.data);	
-				$(data.target).removeAttr(data.name);
+				$(target).removeAttr(data.name);
 			},
 			
 			"set-css": function(event)
 			{
+				var target = determineTarget(event);
 				var data = attrPreprocessor(event.data)
-				$(data.target).css(data.name, data.value);
-			}						
+				$(target).css(data.name, data.value);
+			},
+			
+			"set-html": function(event)
+			{
+				var target = determineTarget(event);
+				$(target).html(event.data.arguments.join(" "));
+			},
+			
+			"set-text": function(event)
+			{
+				var target = determineTarget(event);
+				$(target).text(event.data.arguments.join(" "));
+			},
+			
+			"add-class": function(event)
+			{
+				var target = determineTarget(event);
+				$(target).addClass(event.data.arguments.join(" "));		
+				$.jss.apply(event.data.sheet);		
+			},
+			
+			"remove-class": function(event)
+			{
+				var target = determineTarget(event);
+				$(target).removeClass(event.data.arguments.join(" "));
+				$.jss.apply(event.data.sheet);
+			},
+			
+			"toggle-class": function(event)
+			{
+				var target = determineTarget(event);
+				$(target).toggleClass(event.data.arguments.join(" "));
+				$.jss.apply(event.data.sheet);
+			}
 		},				
 		
 		/** 

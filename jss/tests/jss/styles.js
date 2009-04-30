@@ -7,7 +7,14 @@ jQuery.jss.declare("base", {
 		border: "1px red solid",
 		background: "maroon",
 		color: "white",
-		font_family: 'Impact, sans-serif',		
+		font_family: 'Impact, sans-serif',	
+		click: "toggle-class box-highlight"	
+	},
+	
+	"div.box-highlight":
+	{
+		background: "black",
+		border: "1px blue solid"
 	},
 	
 	"div.box:first":
@@ -18,13 +25,15 @@ jQuery.jss.declare("base", {
 	"div.box a":
 	{		
 		click: "set-css font-family {click-font}",
-		click: "alert (div.box) 'The padding is {@padding}.'"
+		click: "alert (div.box) 'The padding is {@padding}.'",
+		hover: "set-text <<<<>>>> | set-text worked?"
 	},
 	
 	"span.underline":
 	{
 		text_decoration: "underline",
-		click: "alert (#eg) The position of #eg is {@position-left},{@position-top}."		
+		click: "alert (#eg) The position of #eg is {@position-left},{@position-top}.",
+		hover: "set-html hovered | set-html not hovered"
 	},		
 	
 	/* 
