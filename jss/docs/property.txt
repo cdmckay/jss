@@ -1,54 +1,66 @@
 property:                value:
 blur, change, click ...  command
-hover                    command; command
+hover                    command | command
 
 command:
-built-in +optional required
-!userfunc +optional required
+jss-command (selector) arguments !callback
+!userfunc arguments
 
-arguments:
-if prefixed with +, then the argument is optional
-  --example: toggle +slow (#target)
+  --example: toggle (#target) slow
 
 [attribute] if the argument is surrounded in [], it means
 it must be replaced with the current elements attribute of the same name
-  --example: toggle +slow (#target-of-[id])
+  --example: toggle (#target-of-{id}) slow
   
 there are some pseudo-attributes:
-[offset-top]
-[offset-left]
-[position-top]
-[position-left]
-[scroll-top]
-[scroll-left]
-[width]
-[height]
-[inner-width]
-[inner-height]
-[outer-width]
-[outer-height]
+{offset-top}
+{offset-left}
+{position-top}
+{position-left}
+{scroll-top}
+{scroll-left}
+{width}
+{height}
+{inner-width}
+{inner-height}
+{outer-width}
+{outer-height}
   
 list of built-in functions:
 
-all jquery effects (fade-in, fade-out, toggle, slide-up, slide-down, ...)
-fade-in [+slow|+normal|+fast|+int]? (selector) [!callback]?
+alert 'message'
 
-  --example: fade-in +slow (div.target span:first)
-  --example: fade-in +slow (div.target span:first) !callback
+  --example: alert 'hello, how are you?'
+  --example: alert 'hello, {question}?'
+  
+set-html [(selector)] html 
+
+  --example: set-html (#target) '<strong>I am strong!</strong>'
+
+set-text [(selector)] text
+
+  --example: set-text (#target) 'I am text!'
+
+all jquery effects (fade-in, fade-out, toggle, slide-up, slide-down, ...)
+fade-in [(selector)]? [slow|normal|fast|int]? [!callback]?
+
+  --example: fade-in (div.target span:first) slow
+  --example: fade-in (div.target span:first) 1000 !callback
   
 in the second example, the userfunc callback would be called once the fade-in
 completed
 
-set property value [(selector)]?
-  --example: set text-decoration underline
-  --example: set text-decoration underline (div.underline-me)
+set-css [(selector)]? property value 
+  --example: set-css text-decoration underline
+  --example: set-css (div.underline-me) text-decoration underline 
 
-set-attr attribute value [(selector)]?
-  --example: set-attr src clicked.gif (#target)
-  --example: set-attr src [src-over]
+set-attr [(selector)]? attribute value 
+  --example: set-attr (#target) src clicked.gif 
+  --example: set-attr src {src-over}
   
 set-attr can also set pseudo-attributes
-  --example: set-attr scroll-top [scroll-top] + 300 (#target)
+  --example: set-attr (#target) scroll-top 300
 
-remove-attr attribute
+remove-attr [(selector)]? attribute
   --example: remove-attr href
+  --example: remove-attr (div.box .foo) href
