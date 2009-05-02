@@ -391,6 +391,7 @@ jQuery.extend(
 {		
 	jss:
 	{
+		/** The built-in JSS commands. */
 		command:
 		{
 			"alert": function(event)
@@ -477,21 +478,21 @@ jQuery.extend(
 			{
 				var target = determineTarget(event);
 				$(target).addClass(event.data.arguments.join(" "));		
-				$.jss.apply(event.data.sheet);		
-			},
+				$.jss.load();
+			},		
 			
 			"remove-class": function(event)
 			{
 				var target = determineTarget(event);
 				$(target).removeClass(event.data.arguments.join(" "));
-				$.jss.apply(event.data.sheet);
+				$.jss.load();
 			},
 			
 			"toggle-class": function(event)
 			{
 				var target = determineTarget(event);
 				$(target).toggleClass(event.data.arguments.join(" "));
-				$.jss.apply(event.data.sheet);
+				$.jss.load();
 			}
 		},				
 		
@@ -499,25 +500,30 @@ jQuery.extend(
 		 * The available stylesheets loaded using script
 		 * tags.
 		 */
-		length: 0,
+		length: 0,		
+		
+		/**
+		 * The named stylesheets.
+		 */		
+		sheet: new Object(),
 		
 		/**
 		 * Declare a JSS stylesheet.
 		 * @param {String} [id] An identifier for the stylesheet.
 		 * @param {Object} stylesheet The JSS stylesheet.
 		 */
-		declare: function()
+		declare: function( id, stylesheet )
 		{
-			if (typeof arguments[0] == "string") 
+			if (typeof id == "string") 
 			{
-				this[arguments[0]] = arguments[1];
+				this.sheet[id] = stylesheet;
 				Array.prototype.push.apply(this, Array.prototype.slice.call(arguments, 1));
 			}
 			else
 			{
 				Array.prototype.push.apply(this, arguments);
 			}			
-		},
+		},		
 		
 		/**
 		 * Apply a JSS stylesheet to the current document.
@@ -525,6 +531,13 @@ jQuery.extend(
 		 */
 		apply: function(sheet)
 		{		
+			// If the first arugment is a number, then 
+			// use the sheet at that index.
+			if (sheet.constructor == Number)
+			{
+				sheet = this[sheet];
+			}
+			
 			for (var selector in sheet)
 			{				
 				var block = sheet[selector];
@@ -574,7 +587,7 @@ jQuery.extend(
 		 */
 		get: function(url)	
 		{
-			
+			// Not implemented.
 		}
 	}	
 });
