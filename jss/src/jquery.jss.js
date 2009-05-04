@@ -18,8 +18,8 @@
 function processDeclartion(sheet, blocksel, prop, value)
 {
 	// See if value is an execution command.
-	if (value[0] == "!")
-	{
+	if (value.substr(0, 1) == "!")
+	{		
 		value = sheet[value.substr(1)].call(sheet, blocksel, prop);
 	}
 	
@@ -284,12 +284,12 @@ function parseExpression(value)
 	// Get rid of excess whitespace.
 	var value = $.trim(value);
 	var result = expression.exec(value);
-	
+
 	// Get the command name.
 	var command = $.trim(result[1]);
 			
 	// Extract the selector and remove it.
-	var selector = $.trim(result[3]);
+	var selector = $.trim(result[3]);	
 	
 	// The arguments.  
 	var artmp = $.trim(result[4]);
@@ -301,11 +301,11 @@ function parseExpression(value)
 		
 		var match;
 		while ((match = quoteFinder.exec(artmp)) != null)
-		{
-			if      (match[1] != undefined) arlist.push(match[1]);
-			else if (match[3] != undefined) arlist.push(match[3]);
-			else if (match[5] != undefined) arlist.push(match[5]);
-		}				
+		{			
+			if      (match[1] != undefined && match[1].length > 0) arlist.push(match[1]);
+			else if (match[3] != undefined && match[3].length > 0) arlist.push(match[3]);
+			else if (match[5] != undefined && match[5].length > 0) arlist.push(match[5]);
+		}						
 	}
 	
 	// The function arguments, if defined.
@@ -375,7 +375,7 @@ function effectPreprocessor(data)
  */
 function attrPreprocessor(data)
 {
-	if (data.arguments.length < 2) return false;
+	if (data.arguments.length < 2) return false;					
 						
 	var a = data.arguments;	
 	var name =  a[0].replace( "_", "-", "g" );
@@ -442,7 +442,7 @@ jQuery.extend(
 			},
 			
 			"set-attr": function(event)
-			{
+			{			
 				var target = determineTarget(event);
 				var data = attrPreprocessor(event.data);	
 				$(target).attr(data.name, data.value);
@@ -522,7 +522,9 @@ jQuery.extend(
 			else
 			{
 				Array.prototype.push.apply(this, arguments);
-			}			
+			}		
+			
+			return this;	
 		},		
 		
 		/**
@@ -541,9 +543,8 @@ jQuery.extend(
 			for (var selector in sheet)
 			{				
 				var block = sheet[selector];
-				
 				if (typeof block == "function")
-				{
+				{									
 					continue;
 				}
 				else if (block.constructor == Array)
@@ -569,7 +570,9 @@ jQuery.extend(
 							prop.replace( '_', '-' ), value);
 					}		
 				}						
-			} //end for					
+			} //end for		
+			
+			return this;			
 		},
 		
 		load: function()
@@ -578,6 +581,8 @@ jQuery.extend(
 			{
 				this.apply(this[i]);
 			}
+			
+			return this;
 		},
 		
 		/**

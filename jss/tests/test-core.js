@@ -39,12 +39,14 @@ test("The declare method.", function()
 test("The apply method.", function()
 {
 	// Apply the first sheet, and see if the CSS worked.
-	ok(!($(".box").css("background").indexOf("maroon") + 1), "Make sure maroon is not already there");
+	ok(!($(".box").css("background") != undefined && $(".box").css("background").indexOf("maroon") + 1),
+			"Make sure maroon is not already there");			
 	$.jss.apply(0);
 	ok($(".box").css("background").indexOf("maroon") + 1, "Make sure maroon was applied");
 	
 	// Apply the second sheet, and see if the CSS worked.
-	ok(!($(".box").css("background").indexOf("navy") + 1), "Make sure navy is not already there");
+	ok(!($(".box").css("background") != undefined && $(".box").css("background").indexOf("navy") + 1), 
+			"Make sure navy is not already there");			
 	$.jss.apply(1);
 	ok($(".box").css("background").indexOf("navy") + 1, "Make sure navy was applied");
 });
@@ -65,8 +67,10 @@ test("The load method.", function()
 	$.jss.declare("top", sheet3);
 	
 	// Try the load method.
-	ok(!($(".box").css("color").indexOf("maroon") + 1), "Make sure the font color is not already maroon");
-	ok(!($(".box").css("background").indexOf("orange") + 1), "Make sure the background is not already orange");
+	ok(!($(".box").css("color") != undefined && $(".box").css("color").indexOf("maroon") + 1), 
+			"Make sure the font color is not already maroon");
+	ok(!($(".box").css("background") != undefined && $(".box").css("background").indexOf("orange") + 1), 
+			"Make sure the background is not already orange");
 	$.jss.load();
 	ok(($(".box").css("color").indexOf("maroon") + 1), "Make sure the font color is maroon");
 	ok(($(".box").css("background").indexOf("orange") + 1), "Make sure the background is orange");	
