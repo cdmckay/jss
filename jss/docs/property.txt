@@ -64,3 +64,5 @@ set-attr can also set pseudo-attributes
 remove-attr [(selector)]? attribute
   --example: remove-attr href
   --example: remove-attr (div.box .foo) href
+  
+add-class [(selector)]? class
