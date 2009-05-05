@@ -1,7 +1,7 @@
 (function($) {
 	
 /**
- * JSS 0.1.0 - CSS-like JavaScript Stylesheets
+ * JSS 1.0.0 - CSS-like JavaScript Stylesheets
  * Copyright (c) 2009 Cameron McKay (couchware.ca/blogs/cam)
  * Licensed under the GPL (GPL-LICENSE.txt) license.
  * @author cdmckay
