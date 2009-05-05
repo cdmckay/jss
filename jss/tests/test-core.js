@@ -36,8 +36,46 @@ test("The declare method.", function()
 	equals($.jss[1], $.jss.sheet["test"], "See if the the id and index match");
 });
 
+test("The clear method.", function()
+{
+	// Add an empty sheet.
+	$.jss.declare({});
+	
+	// Make sure there are some sheets declared.
+	ok($.jss.length > 0, "Make sure there are some sheets");
+	
+	// Clear them out.
+	$.jss.clear();
+	
+	// Make sure it is clear.
+	equals($.jss.length, 0, "Make sure there are no sheets after a clear");
+});
+
 test("The apply method.", function()
 {
+	// Make sure there are no sheets.
+	$.jss.clear();
+	
+	// The first sheet.
+	var sheet1 = 
+	{
+		".box":
+		{
+			background: "maroon"
+		}
+	};	
+	$.jss.declare(sheet1);
+	
+	// The second sheet.
+	var sheet2 =
+	{
+		".box":
+		{
+			background: "navy"
+		}
+	};
+	$.jss.declare("test", sheet2);
+	
 	// Apply the first sheet, and see if the CSS worked.
 	ok(!($(".box").css("background") != undefined && $(".box").css("background").indexOf("maroon") + 1),
 			"Make sure maroon is not already there");			
@@ -52,19 +90,30 @@ test("The apply method.", function()
 });
 
 test("The load method.", function()
-{
-	// Modify the existing first sheet and add a rule to it dynamically.
-	$.jss[0][".box"]["color"] = "maroon";
+{	
+	// Make sure there are no sheets.
+	$.jss.clear();
+
+	// Add a sheet.
+	var sheet1 = 
+	{
+		".box":
+		{
+			background: "maroon",
+			color: "maroon"
+		}
+	};	
+	$.jss.declare(sheet1);
 	
 	// Now, add a new sheet.
-	var sheet3 =
+	var sheet2 =
 	{
 		".box":
 		{
 			background: "orange"
 		}
 	};
-	$.jss.declare("top", sheet3);
+	$.jss.declare(sheet2);
 	
 	// Try the load method.
 	ok(!($(".box").css("color") != undefined && $(".box").css("color").indexOf("maroon") + 1), 

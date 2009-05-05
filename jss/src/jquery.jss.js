@@ -375,7 +375,7 @@ function effectPreprocessor(data)
  */
 function attrPreprocessor(data)
 {
-	if (data.arguments.length < 2) return false;					
+	if (data.arguments.length < 1) return false;					
 						
 	var a = data.arguments;	
 	var name =  a[0].replace( "_", "-", "g" );
@@ -526,6 +526,25 @@ jQuery.extend(
 			
 			return this;	
 		},		
+		
+		/**
+		 * Clears the memory of all JSS stylesheets.
+		 */
+		clear: function()
+		{
+			// Clear the array.
+			for (var i = 0; i < this.length; i++)
+			{
+				this[i] = undefined;
+			}			
+			this.length = 0;
+			
+			// Clear the sheet hash.
+			for (var ss in this.sheet)
+			{
+				this.sheet[ss] = undefined;
+			}
+		},
 		
 		/**
 		 * Apply a JSS stylesheet to the current document.
