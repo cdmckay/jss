@@ -255,6 +255,18 @@ function processExpression(sheet, blocksel, prop, value)
 	var fnlist = parts.fnlist;
 	var cb     = fnlist[0];
 	
+	// Create the command function.
+	var commandfunc = commandWrapper($.jss.command[parts.command]);
+	
+	// Add it to the event function table.
+	if ($.jss.eventfunc[blocksel] == undefined) $.jss.eventfunc[blocksel] = new Array();
+	$.jss.eventfunc[blocksel].push(
+	{
+		type: prop,
+		fn: commandfunc
+	});
+	
+	// Bind it.
 	$(blocksel).bind(
 		prop, 
 		{ 
@@ -267,7 +279,7 @@ function processExpression(sheet, blocksel, prop, value)
 			callback:  sheet[cb],
 			fnlist:    fnlist
 		},
-		commandWrapper($.jss.command[parts.command])
+		commandfunc
 	);
 }
 
@@ -533,6 +545,19 @@ jQuery.extend(
 			}
 		},				
 		
+		/**
+		 * All the event property functions that have been declared.
+		 * This is used by JSS to remove all bound functions when
+		 * it re-applies a stylesheet.
+		 * 
+		 * The table keys are the selector that was used to find
+		 * the elements.
+		 * 
+		 * For example, eventfunc[".box"][0]  would be the first function
+		 * declared using the ".box" selector.
+		 */
+		eventfunc: new Object(),
+		
 		/** 
 		 * The available stylesheets loaded using script
 		 * tags.
@@ -607,10 +632,18 @@ jQuery.extend(
 				sheet = this.sheet[sheet];
 			}
 			
-			for (var selector in sheet)
-			{				
-				$(selector).unbind();
-				var block = sheet[selector];
+			for (var blocksel in sheet)
+			{	
+				// Unbind any existing event properties.
+				if (this.eventfunc[blocksel] != undefined)			
+				{
+					var a = this.eventfunc[blocksel];
+					var $blocksel = $(blocksel);
+					//alert(blocksel + ": " + this.eventfunc[blocksel].length);
+					for (var i = 0; i < a.length; i++) $blocksel.unbind(a[i].type, a[i].fn);
+				}
+				
+				var block = sheet[blocksel];
 				if (typeof block == "function")
 				{									
 					continue;
@@ -623,7 +656,7 @@ jQuery.extend(
 						for (var prop in block[i])
 						{							
 							value = block[i][prop];							
-							processDeclartion(sheet, selector, 
+							processDeclartion(sheet, blocksel, 
 								prop.replace( '_', '-', 'g' ), value);
 						}						
 					} // end for
@@ -634,7 +667,7 @@ jQuery.extend(
 					for (var prop in block)
 					{		
 						value = block[prop];
-						processDeclartion(sheet, selector, 
+						processDeclartion(sheet, blocksel, 
 							prop.replace( '_', '-' ), value);
 					}		
 				}						
