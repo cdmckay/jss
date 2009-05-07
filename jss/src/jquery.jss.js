@@ -1,7 +1,7 @@
 (function($) {
 	
 /**
- * JSS 1.0.0 - CSS-like JavaScript Stylesheets
+ * JSS 1.0.0 - Enhanced CSS-like JavaScript Stylesheets
  * Copyright (c) 2009 Cameron McKay (couchware.ca/blogs/cam)
  * Licensed under the GPL (GPL-LICENSE.txt) license.
  * @author cdmckay
@@ -11,17 +11,20 @@
  * Processes the CSS declaration.  This function
  * will intercept special JSS properties and
  * redirect them to the appropriate handler.
+ * @param {Object} sheet
+ * @param {String} blocksel
  * @param {String} prop
  * @param {String} value
- * @param {String} blocksel
+ * @param {Boolean} events If false, event properties will not be parsed.
+ * 
  */
 function processDeclartion(sheet, blocksel, prop, value)
-{
+{	
 	// See if value is an execution command.
 	if (value.substr(0, 1) == "!")
 	{		
 		value = sheet[value.substr(1)].call(sheet, blocksel, prop);
-	}
+	}	
 	
 	switch (prop)
 	{
@@ -76,12 +79,12 @@ function processDeclartion(sheet, blocksel, prop, value)
  * If the attribute is not found, the attribute is replaced
  * with an empty string.
  * @param {Object} expression
- * @param {String} blocksel The block selector.
+ * @param {String} eventTarget The event target.
  * @param {String} selector The selector defined by the command.
  * @return The expression with all the attributes replaced.
  * @type String
  */
-function replaceAttributes(expression, blocksel, selector)
+function replaceAttributes(expression, eventTarget, selector)
 {			
 	if (expression.length == 0) return expression;		
 	
@@ -92,7 +95,7 @@ function replaceAttributes(expression, blocksel, selector)
 		for (var i = 0; i < expressionList.length; i++)
 		{
 			expressionList[i] = 
-					replaceAttributes(expressionList[i], blocksel, selector);
+					replaceAttributes(expressionList[i], eventTarget, selector);
 		}
 		
 		return expressionList;
@@ -100,8 +103,8 @@ function replaceAttributes(expression, blocksel, selector)
 	
 	//alert(expression);		
 	
-	// Get the blocksel and the command selector.
-	var $blocksel = $(blocksel);
+	// Get the eventTarget and the command selector.
+	var $eventTarget = $(eventTarget);
 	var $selector = $(selector);
 	
 	//alert(expression + ", " + selector);			
@@ -135,12 +138,12 @@ function replaceAttributes(expression, blocksel, selector)
 		else
 		{
 			//attr = $blocksel.attr(temp);
-			attr = getAttribute($blocksel, temp);
+			attr = getAttribute($eventTarget, temp);
 		}
 			
 		if (attr == undefined) attr = "";
 		
-		//alert($blocksel.length);
+		//alert($eventTarget.length);
 		//alert(temp + " = " + rep);
 		
 		ret = ret.replace(match, attr);
@@ -248,8 +251,8 @@ function processExpression(sheet, blocksel, prop, value)
 	if (parts.command == undefined)
 		throw Error("No command specified in expression");					
 		
-	var argu   = replaceAttributes(parts.arguments, blocksel, parts.selector);
-	var fnlist = replaceAttributes(parts.fnlist,    blocksel, parts.selector); 	
+	var argu   = parts.arguments;
+	var fnlist = parts.fnlist;
 	var cb     = fnlist[0];
 	
 	$(blocksel).bind(
@@ -264,7 +267,7 @@ function processExpression(sheet, blocksel, prop, value)
 			callback:  sheet[cb],
 			fnlist:    fnlist
 		},
-		$.jss.command[parts.command]
+		commandWrapper($.jss.command[parts.command])
 	);
 }
 
@@ -339,6 +342,39 @@ function determineTarget(event)
 }
 
 /**
+ * Wraps the command function with a preprocessor.
+ * @param {Function} commandFunction
+ */
+function commandWrapper(commandFunction)
+{
+	return function(event)
+	{
+		commandPreprocessor(event);
+		return commandFunction(event);
+	}
+}
+
+/**
+ * A function run before every command.  It is mainly used to 
+ * replace attributes and data.
+ * @param {Object} event The event that triggers the command.
+ */
+function commandPreprocessor(event)
+{
+	// The data part of the event.
+	var data = event.data;
+	
+	// Replace all attributes.
+	data.arguments = replaceAttributes(data.arguments, event.currentTarget, data.selector);
+	data.fnlist = replaceAttributes(data.fnlist, event.currentTarget, data.selector);
+	
+	// Replace all data.
+	// Not yet implemented.
+	
+	//return event;
+}
+
+/**
  * A convenience function for determining
  * what data to pass to an animation function.
  * @param {Object} data
@@ -375,7 +411,7 @@ function effectPreprocessor(data)
  */
 function attrPreprocessor(data)
 {
-	if (data.arguments.length < 1) return false;					
+	if (data.arguments.length < 1) return false;											
 						
 	var a = data.arguments;	
 	var name =  a[0].replace( "_", "-", "g" );
@@ -396,6 +432,7 @@ jQuery.extend(
 		{
 			"alert": function(event)
 			{
+				replaceAttributes(event.data);
 				alert(event.data.arguments.join(" "));
 			},
 			
@@ -505,7 +542,7 @@ jQuery.extend(
 		/**
 		 * The named stylesheets.
 		 */		
-		sheet: new Object(),
+		sheet: new Object(),				
 		
 		/**
 		 * Declare a JSS stylesheet.
@@ -516,14 +553,19 @@ jQuery.extend(
 		{
 			if (typeof id == "string") 
 			{
-				this.sheet[id] = stylesheet;
-				Array.prototype.push.apply(this, Array.prototype.slice.call(arguments, 1));
+				this.sheet[id] = stylesheet;				
 			}
 			else
-			{
-				Array.prototype.push.apply(this, arguments);
+			{							
+				// If the id is not a string, then it must be a stylesheet.
+				// Thus, we map id to the stylesheet variable.  It's a little
+				// dirty but it makes the part after it a lot more clear.
+				stylesheet = id;
 			}		
 			
+			// Add the stylesheet to this array.
+			Array.prototype.push.call(this, stylesheet);
+						
 			return this;	
 		},		
 		
@@ -551,16 +593,23 @@ jQuery.extend(
 		 * @param {Object} sheet
 		 */
 		apply: function(sheet)
-		{		
+		{					
 			// If the first arugment is a number, then 
 			// use the sheet at that index.
 			if (sheet.constructor == Number)
 			{
-				sheet = this[sheet];
+				var index = sheet;
+				sheet = this[index];				
+			}
+			// If it's a string, then use the named sheet.
+			else if (typeof sheet == "string")
+			{
+				sheet = this.sheet[sheet];
 			}
 			
 			for (var selector in sheet)
 			{				
+				$(selector).unbind();
 				var block = sheet[selector];
 				if (typeof block == "function")
 				{									
@@ -592,13 +641,13 @@ jQuery.extend(
 			} //end for		
 			
 			return this;			
-		},
-		
+		},			
+				
 		load: function()
 		{
 			for (var i = 0; i < this.length; i++)
 			{
-				this.apply(this[i]);
+				this.apply(i);
 			}
 			
 			return this;

@@ -14,7 +14,7 @@
     <tstamp/>
 	
     <!-- Create the build directory structure used to zip -->
-    <mkdir dir="${build}"/>
+    <mkdir dir="${build}"/>		
 	
 	<!-- Copy the contents of src to the build dir -->
 	<!-- Copy the licenses to the the build dir -->
@@ -25,10 +25,17 @@
   </target>
 
   <target name="single" depends="init" description="Generate the single file JS distribution">
+  	<!-- Create the dist directory -->
+    <mkdir dir="${dist}"/>
+	
+	<!-- Copy and rename the jss source file -->
   	<copy file="${build}/jquery.jss.js" tofile="${dist}/jquery.jss-${version}.js" />
   </target>
 
-  <target name="dist" depends="init" description="Generate the zip distribution" >    
+  <target name="dist" depends="init" description="Generate the zip distribution" >
+	<!-- Create the dist directory -->
+    <mkdir dir="${dist}"/>    
+	
     <!-- Put everything in ${build} into the jss-${DSTAMP}.jar file -->
     <zip destfile="${dist}/jss-${version}.zip" basedir="${build}" update="true" />
   </target>

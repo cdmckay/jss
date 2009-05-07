@@ -8,7 +8,7 @@ jss-command (selector) arguments !callback
 
   --example: toggle (#target) slow
 
-[attribute] if the argument is surrounded in [], it means
+{attribute} if the argument is surrounded in {}, it means
 it must be replaced with the current elements attribute of the same name
   --example: toggle (#target-of-{id}) slow
   
@@ -25,6 +25,23 @@ there are some pseudo-attributes:
 {inner-height}
 {outer-width}
 {outer-height}
+  
+You may also save (non-attribute) data to an element using JSS, and retrieve it
+using square brackets [].
+
+For example, set the data using the "set-data" command.
+  --example: set-data lastsrc {src}
+  
+Then you can retrieve it using the square brackets[]
+  --example: set-attr src [lastsrc]
+  
+To do an image rollover with only 1 extra attribute, you could do it like this:
+
+"img[src-over]":
+{
+  load: "set-data src-out {src}",
+  hover: "set-attr src {src-over} | set-attr src [src-out]"
+}
   
 list of built-in functions:
 
