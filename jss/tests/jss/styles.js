@@ -25,14 +25,14 @@ jQuery.jss.declare("base", {
 	"div.box a":
 	{		
 		click: "set-css font-family {click-font}",
-		click: "alert (div.box) 'The padding is {@padding}.'",
+		click: "alert (div.box) 'The padding is {padding}.'",
 		hover: "set-text <<<<>>>> | set-text worked?"
 	},
 	
 	"span.underline":
 	{
 		text_decoration: "underline",
-		click: "alert (#eg) The position of #eg is {@position-left},{@position-top}.",
+		click: "alert (#eg) The position of #eg is {position-left},{position-top}.",
 		hover: "set-html hovered | set-html not hovered"
 	},		
 	
@@ -58,7 +58,7 @@ jQuery.jss.declare("base", {
 
 	"div.hover-other":
 	{
-		hover: "set-attr (#eg) src {@src-over} | set-attr (#eg) src {@src-out}"
+		hover: "set-attr (#eg) src {src-over} | set-attr (#eg) src {src-out}"
 	}
 
 //	"div.hover-other":

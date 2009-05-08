@@ -129,16 +129,23 @@ function replaceAttributes(expression, eventTarget, selector)
 		// This will be the attribute we replace it with.
 		var attr;
 		
-		// See if we should use the selector instead.
-		if (temp[0] == "@" && selector != "")
+		// If an attribute is defined with an @ character, then
+		// always use the event target, regardless of whether
+		// or not a selector is defined.
+		if (temp[0] == "@")
 		{		
 			//attr = $selector.attr(temp.substr(1));
-			attr = getAttribute($selector, temp.substr(1));
+			attr = getAttribute($eventTarget, temp.substr(1));
 		}
 		else
 		{
-			//attr = $blocksel.attr(temp);
-			attr = getAttribute($eventTarget, temp);
+			// Determine which target to use.  If there is
+			// a selector defined, use that.  O
+			var $target;
+			if (selector != '') $target = $selector;
+			else $target = $eventTarget;			
+			
+			attr = getAttribute($target, temp);
 		}
 			
 		if (attr == undefined) attr = "";
@@ -179,30 +186,30 @@ function toCamelCase(text)
 
 /**
  * Get the attribute value of the passed jQuery ($$) object with the passed name.
- * @param {jQuery} $$
+ * @param {jQuery} $element
  * @param {String} name
  * @return The attribute value.
  * @type String
  */
-function getAttribute($$, name)
+function getAttribute($element, name)
 {	
 	var attr;
 	switch (name)
 	{
 		case "offset-top":			
-			attr = $$.offset().top;
+			attr = $element.offset().top;
 			break;
 			
 		case "offset-left":
-			attr = $$.offset().left;
+			attr = $element.offset().left;
 			break;
 			
 		case "position-top":
-			attr = $$.position().top;
+			attr = $element.position().top;
 			break;
 			
 		case "position-left":
-			attr = $$.position().left;
+			attr = $element.position().left;
 			break;
 			
 		case "scroll-top":
@@ -213,18 +220,18 @@ function getAttribute($$, name)
 		case "inner-height":
 		case "outer-width":
 		case "outer-height":
-			attr = $$[toCamelCase(name)]();
+			attr = $element[toCamelCase(name)]();
 			break;
 					
 		default:
-			attr = $$.attr(name);
-			if (attr === undefined) attr = $$.css(name);
+			attr = $element.attr(name);
+			if (attr === undefined) attr = $element.css(name);
 	}
 	
 	return attr;
 }
 
-function setAttribute($$, name, value)
+function setAttribute($element, name, value)
 {
 	
 }
