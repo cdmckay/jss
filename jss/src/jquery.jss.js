@@ -50,9 +50,10 @@ function processDeclartion(sheet, blocksel, prop, value)
 		case "select":
 		case "submit":
 		case "unload":
-		case "hover":
+		case "setup":		
 		{
 			// If the value is an array, then cycle it.
+			// TODO: Move the array handling into processExpression.
 			if (value.constructor == Array)
 			{
 				for (var i = 0; i < value.length; i++)					
@@ -66,26 +67,32 @@ function processDeclartion(sheet, blocksel, prop, value)
 			}		
 			
 			break;
-		}						
+		}		
 		
+		case "hover":
+		{			
+			var a = value.split("|");
+			processExpression(sheet, blocksel, "mouseenter", $.trim(a[0]));
+			processExpression(sheet, blocksel, "mouseleave", $.trim(a[1]));
+			break;
+		}
+				
 		default:
 			$(blocksel).css(prop, value);
 	}
 }
 
 /**
- * This funtion replaces all {attr} expressions with their
- * corresponding attributes, and then returns the new string.
- * If the attribute is not found, the attribute is replaced
- * with an empty string.
- * @param {Object} expression
- * @param {String} eventTarget The event target.
- * @param {String} selector The selector defined by the command.
- * @return The expression with all the attributes replaced.
- * @type String
+ * A generic replacer that can be used to replace things like
+ * {attribute} and [data] tags.
+ * @param expression The expression to operate on.
+ * @param eventTarget The event target.
+ * @param selector The selector defined by the expression.
+ * @param regexp The regular expression to determine what to replace.
+ * @param getter The getter used to get the replacement value.
  */
-function replaceAttributes(expression, eventTarget, selector)
-{			
+function replaceGeneric(expression, eventTarget, selector, regexp, getter)
+{
 	if (expression.length == 0) return expression;		
 	
 	// If it's an array, run it recursively.
@@ -95,7 +102,7 @@ function replaceAttributes(expression, eventTarget, selector)
 		for (var i = 0; i < expressionList.length; i++)
 		{
 			expressionList[i] = 
-					replaceAttributes(expressionList[i], eventTarget, selector);
+					replaceGeneric(expressionList[i], eventTarget, selector, regexp, getter);
 		}
 		
 		return expressionList;
@@ -108,17 +115,14 @@ function replaceAttributes(expression, eventTarget, selector)
 	var $selector = $(selector);
 	
 	//alert(expression + ", " + selector);			
-	
-	// Find all the attributes.
-	var regex = /(\{[\w-@]+\})/g;		
-	
+		
 	// The string to return.
 	var ret = expression;
 	
 	// For each attribute, replace it with the appropriate
 	// value.
 	var result;
-	while((result = regex.exec(expression)) != null)
+	while((result = regexp.exec(expression)) != null)
 	{
 		// The current match.
 		var match = result[0];
@@ -127,7 +131,7 @@ function replaceAttributes(expression, eventTarget, selector)
 		var temp = match.substr(1, match.length - 2);		
 		
 		// This will be the attribute we replace it with.
-		var attr;
+		var val;
 		
 		// If an attribute is defined with an @ character, then
 		// always use the event target, regardless of whether
@@ -135,28 +139,68 @@ function replaceAttributes(expression, eventTarget, selector)
 		if (temp[0] == "@")
 		{		
 			//attr = $selector.attr(temp.substr(1));
-			attr = getAttribute($eventTarget, temp.substr(1));
+			val = getter($eventTarget, temp.substr(1));
 		}
 		else
 		{
 			// Determine which target to use.  If there is
-			// a selector defined, use that.  O
+			// a selector defined, use that.
 			var $target;
 			if (selector != '') $target = $selector;
 			else $target = $eventTarget;			
 			
-			attr = getAttribute($target, temp);
+			val = getter($target, temp);
 		}
 			
-		if (attr == undefined) attr = "";
+		if (val == undefined) val = "";
 		
 		//alert($eventTarget.length);
 		//alert(temp + " = " + rep);
 		
-		ret = ret.replace(match, attr);
+		ret = ret.replace(match, val);
 	}
 	
 	return ret;
+}
+
+/**
+ * This funtion replaces all {attr} expressions with their
+ * corresponding attributes, and then returns the new string.
+ * If the attribute is not found, the {attr} is replaced
+ * with an empty string.
+ * @param {Object} expression
+ * @param {String} eventTarget The event target.
+ * @param {String} selector The selector defined by the command.
+ * @return The expression with all the attributes replaced.
+ * @type String
+ */
+function replaceAttributes(expression, eventTarget, selector)
+{		
+	// Find all the attributes.
+	var regexp = /(\{[\w-@]+\})/g;		
+	
+	// Use the generic replacer.
+	return replaceGeneric(expression, eventTarget, selector, regexp, getAttribute);	
+}
+
+/**
+ * This funtion replaces all [data] expressions with their
+ * corresponding data values, and then returns the new string.
+ * If the data name is not found, the [data] is replaced
+ * with an empty string.
+ * @param {Object} expression
+ * @param {String} eventTarget The event target.
+ * @param {String} selector The selector defined by the command.
+ * @return The expression with all the data replaced.
+ * @type String
+ */
+function replaceData(expression, eventTarget, selector)
+{		
+	// Find all the attributes.
+	var regexp = /(\[[\w-@]+\])/g;		
+	
+	// Use the generic replacer.
+	return replaceGeneric(expression, eventTarget, selector, regexp, getData);	
 }
 
 /**
@@ -222,6 +266,14 @@ function getAttribute($element, name)
 		case "outer-height":
 			attr = $element[toCamelCase(name)]();
 			break;
+			
+		case "outer-outer-width":
+			attr = $element.outerWidth(true);
+			break;
+			
+		case "outer-outer-height":		
+			attr = $elemnet.outerHeight(true);
+			break;
 					
 		default:
 			attr = $element.attr(name);
@@ -233,7 +285,38 @@ function getAttribute($element, name)
 
 function setAttribute($element, name, value)
 {
+	if (value == undefined)
+	{
+		$element.removeAttr(name);
+		return;
+	}
 	
+	switch (name)
+	{					
+		case "scroll-top":
+		case "scroll-left":	
+			$element[toCamelCase(name)](value);
+			break;
+		
+		default:
+			$element.attr(name, value);
+	}
+}
+
+function getData($element, name)
+{	
+	return $element.data(name);
+}
+
+function setData($element, name, value)
+{	
+	if (value == undefined)
+	{
+		$element.removeData(name);
+		return;
+	}
+	
+	$element.data(name, value);
 }
 
 /**
@@ -241,18 +324,10 @@ function setAttribute($element, name, value)
  * @param {Object} sheet
  * @param {Object} blocksel
  * @param {Object} prop
- * @param {Object} value
+ * @param {Object} value 
  */
 function processExpression(sheet, blocksel, prop, value)
-{
-	if (prop == "hover")
-	{
-		var a = value.split("|");
-		processExpression(sheet, blocksel, "mouseenter", $.trim(a[0]));
-		processExpression(sheet, blocksel, "mouseleave", $.trim(a[1]));
-		return;
-	}	
-	
+{			
 	var parts = parseExpression(value);
 	
 	if (parts.command == undefined)
@@ -262,9 +337,22 @@ function processExpression(sheet, blocksel, prop, value)
 	var fnlist = parts.fnlist;
 	var cb     = fnlist[0];
 	
-	// Create the command function.
-	var commandfunc = commandWrapper($.jss.command[parts.command]);
+	// The data to pass through.
+	var data = 
+	{ 
+		sheet:     sheet,
+		blocksel:  blocksel, 
+		prop:      prop,
+		value:     value,
+		selector:  parts.selector,
+		arguments: argu,			
+		callback:  sheet[cb],
+		fnlist:    fnlist
+	};
 	
+	// Create the command function.
+	var commandfunc = commandWrapper($.jss.command[parts.command]);		
+				
 	// Add it to the event function table.
 	if ($.jss.eventfunc[blocksel] == undefined) $.jss.eventfunc[blocksel] = new Array();
 	$.jss.eventfunc[blocksel].push(
@@ -274,20 +362,12 @@ function processExpression(sheet, blocksel, prop, value)
 	});
 	
 	// Bind it.
-	$(blocksel).bind(
-		prop, 
-		{ 
-			sheet:     sheet,
-			blocksel:  blocksel, 
-			prop:      prop,
-			value:     value,
-			selector:  parts.selector,
-			arguments: argu,			
-			callback:  sheet[cb],
-			fnlist:    fnlist
-		},
-		commandfunc
-	);
+	$(blocksel).bind(prop, data, commandfunc);
+}
+
+function bindExpression()
+{
+	
 }
 
 /** A regular expression breaking down a JSS expression. */
@@ -385,7 +465,10 @@ function commandPreprocessor(event)
 	
 	// Replace all attributes.
 	data.arguments = replaceAttributes(data.arguments, event.currentTarget, data.selector);
+	data.arguments = replaceData(data.arguments, event.currentTarget, data.selector);
+	
 	data.fnlist = replaceAttributes(data.fnlist, event.currentTarget, data.selector);
+	data.fnlist = replaceData(data.fnlist, event.currentTarget, data.selector);
 	
 	// Replace all data.
 	// Not yet implemented.
@@ -450,8 +533,7 @@ jQuery.extend(
 		command:
 		{
 			"alert": function(event)
-			{
-				replaceAttributes(event.data);
+			{				
 				alert(event.data.arguments.join(" "));
 			},
 			
@@ -501,14 +583,28 @@ jQuery.extend(
 			{			
 				var target = determineTarget(event);
 				var data = attrPreprocessor(event.data);	
-				$(target).attr(data.name, data.value);
+				setAttribute($(target), data.name, data.value);
 			},
 			
 			"remove-attr": function(event)
 			{
 				var target = determineTarget(event);
 				var data = attrPreprocessor(event.data);	
-				$(target).removeAttr(data.name);
+				setAttribute($(target), data.name, undefined);
+			},
+			
+			"set-data": function(event)
+			{
+				var target = determineTarget(event);
+				var data = attrPreprocessor(event.data);
+				setData($(target), data.name, data.value);
+			},
+			
+			"remove-data": function(event)
+			{
+				var target = determineTarget(event);
+				var data = attrPreprocessor(event.data);
+				setData($(target), data.name, undefined);
 			},
 			
 			"set-css": function(event)
@@ -614,10 +710,16 @@ jQuery.extend(
 			this.length = 0;
 			
 			// Clear the sheet hash.
-			for (var ss in this.sheet)
+			this.sheet = new Object();
+			
+			// Clear the eventfunc hash.
+			for (var selector in this.eventfunc)
 			{
-				this.sheet[ss] = undefined;
+				var a = this.eventfunc[selector];
+				var $selector = $(selector);
+				for (var j = 0; j < a.length; j++) $selector.unbind(a[j].type, a[j].fn);
 			}
+			eventfunc = new Object();
 		},
 		
 		/**
@@ -626,7 +728,7 @@ jQuery.extend(
 		 */
 		apply: function(sheet)
 		{					
-			// If the first arugment is a number, then 
+			// If the first argument is a number, then 
 			// use the sheet at that index.
 			if (sheet.constructor == Number)
 			{
@@ -641,12 +743,12 @@ jQuery.extend(
 			
 			for (var blocksel in sheet)
 			{	
+				var $blocksel = $(blocksel);
+			
 				// Unbind any existing event properties.
 				if (this.eventfunc[blocksel] != undefined)			
 				{
-					var a = this.eventfunc[blocksel];
-					var $blocksel = $(blocksel);
-					//alert(blocksel + ": " + this.eventfunc[blocksel].length);
+					var a = this.eventfunc[blocksel];					
 					for (var i = 0; i < a.length; i++) $blocksel.unbind(a[i].type, a[i].fn);
 				}
 				
@@ -677,9 +779,14 @@ jQuery.extend(
 						processDeclartion(sheet, blocksel, 
 							prop.replace( '_', '-' ), value);
 					}		
-				}						
+				}			
+				
+				// Trigger the setup event.
+				$blocksel.trigger("setup");
+				$blocksel.unbind("setup");
+							
 			} //end for		
-			
+						
 			return this;			
 		},			
 				

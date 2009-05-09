@@ -8,7 +8,8 @@ jQuery.jss.declare("base", {
 		background: "maroon",
 		color: "white",
 		font_family: 'Impact, sans-serif',	
-		click: "toggle-class box-highlight"	
+		click: "toggle-class box-highlight",
+		//setup: "alert 2 + 2 is " + (2 + 2) + "."
 	},
 	
 	"div.box-highlight":
@@ -51,14 +52,17 @@ jQuery.jss.declare("base", {
 	},
 		
 	"img[src-over]":
-	{
-		hover: "set-attr src {src-over} | set-attr src {src-out}",
+	{		
+		//setup: "set-data test tube",
+		//click: "alert [test]"
+		setup: "set-data src-out {src}", // Store the original image name.
+		hover: "set-attr src {src-over} | set-attr src [src-out]",
 		click: "alert The dimensions of this element are {width}x{height}."
 	},
 
 	"div.hover-other":
-	{
-		hover: "set-attr (#eg) src {src-over} | set-attr (#eg) src {src-out}"
+	{		
+		//hover: "set-attr (#eg) src {src-over} | set-attr (#eg) src {src-out}"
 	}
 
 //	"div.hover-other":
