@@ -25,7 +25,7 @@ function processDeclartion(sheet, blocksel, prop, value)
 	{		
 		value = sheet[value.substr(1)].call(sheet, blocksel, prop);
 	}	
-	
+
 	switch (prop)
 	{
 		case "blur":
@@ -645,6 +645,12 @@ jQuery.extend(
 				var target = determineTarget(event);
 				$(target).toggleClass(event.data.arguments.join(" "));
 				$.jss.load();
+			},
+			
+			"trigger": function(event)
+			{
+				var target = determineTarget(event);
+				$(target).trigger(event.data.arguments[0]);				
 			}
 		},				
 		

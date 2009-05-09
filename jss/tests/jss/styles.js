@@ -63,6 +63,7 @@ jQuery.jss.declare("base", {
 	"div.hover-other":
 	{		
 		//hover: "set-attr (#eg) src {src-over} | set-attr (#eg) src {src-out}"
+	 	click: "trigger (img[src-over]) click"
 	}
 
 //	"div.hover-other":
