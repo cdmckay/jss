@@ -34,7 +34,7 @@ jQuery.jss.declare("base", {
 	{
 		text_decoration: "underline",
 		click: "alert (#eg) The position of #eg is {position-left},{position-top}.",
-		hover: "set-html hovered | set-html not hovered"
+		hover: "set-text \\| | set-text yyy"
 	},		
 	
 	/* 
@@ -63,7 +63,7 @@ jQuery.jss.declare("base", {
 	"div.hover-other":
 	{		
 		//hover: "set-attr (#eg) src {src-over} | set-attr (#eg) src {src-out}"
-	 	click: "trigger (img[src-over]) click"
+	 	click: "trigger (img[src-over]:eq(0)) click"
 	}
 
 //	"div.hover-other":

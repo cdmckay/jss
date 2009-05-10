@@ -71,7 +71,8 @@ function processDeclartion(sheet, blocksel, prop, value)
 		
 		case "hover":
 		{			
-			var a = value.split("|");
+			var a = value.split(/[^\\]\|/);
+			alert(a);
 			processExpression(sheet, blocksel, "mouseenter", $.trim(a[0]));
 			processExpression(sheet, blocksel, "mouseleave", $.trim(a[1]));
 			break;
