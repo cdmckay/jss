@@ -788,7 +788,7 @@ jQuery.extend(
 					}		
 				}			
 				
-				// Trigger the setup event.
+				// Trigger the setup event.				
 				$blocksel.trigger("setup");
 				$blocksel.unbind("setup");
 							

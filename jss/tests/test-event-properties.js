@@ -25,7 +25,7 @@ test("Test the event properties using a callback.", function()
 		"keypress",
 		"keyup",
 		"select",
-		"submit"
+		"submit"			
 	];	
 	
 	// The sheet we'll use to trigger the callback.
@@ -44,8 +44,23 @@ test("Test the event properties using a callback.", function()
 				
 	$.each(events, function()
 	{		
-		$("#test1")[this]();
+		if (this != "setup") $("#test1")[this]();
 		equals($el.attr("test"), "test", "Make sure that the " + this + " event works");
 		$el.attr("test", "-");
-	});							
+	});			
+	
+	// Test setup.
+	$.jss.clear();
+	
+	var setupsheet = 
+	{
+		"#test1":
+		{
+			setup: "set-attr test tube"
+		}
+	}				
+	$.jss.declare(setupsheet);	
+	$el.attr("test", "-");
+	$.jss.load();	
+	equals($el.attr("test"), "tube", "Make sure that the setup event works");
 });
