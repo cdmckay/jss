@@ -484,7 +484,8 @@ function commandPreprocessor(event)
  */
 function effectPreprocessor(data)
 {							
-	var speed  = data.arguments.length > 0 ? data.arguments[0] : "normal";
+	var speed   = data.arguments.length >= 1 ? data.arguments[0] : "normal";
+	var opacity = data.arguments.length >= 2 ? data.arguments[1] : undefined;
 
 	switch (speed)
 	{
@@ -495,12 +496,11 @@ function effectPreprocessor(data)
 			
 		default:
 			speed = parseInt(speed);
-	}					
-	
-	if (isNaN(speed)) speed = "0";
+	}							
 			
 	return { 		
 		speed: speed, 
+		opacity: opacity,
 		callback: data.callback
 	}	
 }
@@ -538,13 +538,6 @@ jQuery.extend(
 				alert(event.data.arguments.join(" "));
 			},
 			
-			"fade-out": function(event)
-			{	
-				var target = determineTarget(event);
-				var data = effectPreprocessor(event.data);		
-				$(target).fadeOut(data.speed, data.callback);
-			},
-			
 			"fade-in": function(event)
 			{
 				var target = determineTarget(event);
@@ -552,11 +545,18 @@ jQuery.extend(
 				$(target).fadeIn(data.speed, data.callback);
 			},
 			
-			"slide-up": function(event)
+			"fade-out": function(event)
+			{	
+				var target = determineTarget(event);
+				var data = effectPreprocessor(event.data);		
+				$(target).fadeOut(data.speed, data.callback);
+			},		
+			
+			"fade-to": function(event)
 			{
 				var target = determineTarget(event);
 				var data = effectPreprocessor(event.data);		
-				$(target).slideUp(data.speed, data.callback);
+				$(target).fadeTo(data.speed, data.opacity, data.callback);
 			},
 			
 			"slide-down": function(event)
@@ -565,6 +565,13 @@ jQuery.extend(
 				var data = effectPreprocessor(event.data);		
 				$(target).slideDown(data.speed, data.callback);
 			},
+			
+			"slide-up": function(event)
+			{
+				var target = determineTarget(event);
+				var data = effectPreprocessor(event.data);		
+				$(target).slideUp(data.speed, data.callback);
+			},						
 			
 			"slide-toggle": function(event)
 			{

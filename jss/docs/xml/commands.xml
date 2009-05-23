@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<commands>
+	<command>
+		<name>alert</name>
+		<param>message1</param>
+		<param optional="true" variable="true">message2</param>
+		<summary>
+			Alerts the messages in a JavaScript alert pop-up.  If multiple messages are defined, they'll be concatenated together.
+		</summary>
+		<example><![CDATA[
+$.jss.declare({
+  "#alert":
+  {
+    click: "alert This is an alert.",
+    click: "alert 'This is the same alert.'"
+  }
+});
+		]]></example>
+	</command>
+	<command>
+		<name>fade-in</name>
+		<selector />
+		<param optional="true">speed</param>
+		<summary>
+			Fade in all matched elements by adjusting their opacity and firing an optional callback after completion.
+		</summary>
+		<example><![CDATA[
+$.jss.declare({
+  "#fade-in":
+  {
+    // Fade in #fade-in when clicked.
+    click: "fade-in",
+
+    // Fade in #fade-in-target when clicked.
+    click: "fade-in (#fade-in-target)",
+	
+    // Fade in #fade-in-target fast when clicked.
+    click: "fade-in (#fade-in-target) fast",
+	
+    // Fade in #fade-in-target over 1000 ms when clicked.
+    click: "fade-in (#fade-in-target) 1000"
+  }
+});			
+		]]></example>
+	</command>	
+	<command>
+		<name>fade-out</name>
+		<selector />
+		<param optional="true">speed</param>
+		<summary>
+			Fade out all matched elements by adjusting their opacity to 0, then setting display to "none" and firing an optional callback after completion.
+		</summary>
+		<example><![CDATA[
+$.jss.declare({
+  "#fade-out":
+  {
+    // Fade out #fade-out when clicked.
+    click: "fade-out",
+
+    // Fade out #fade-out-target when clicked.
+    click: "fade-out (#fade-out-target)",
+	
+    // Fade out #fade-out-target fast when clicked.
+    click: "fade-out (#fade-out-target) fast",
+	
+    // Fade out #fade-out-target over 1000 ms when clicked.
+    click: "fade-out (#fade-out-target) 1000"
+  }
+});			
+		]]></example>
+	</command>
+</commands>

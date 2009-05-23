@@ -1,7 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" ?>
 <project name="JSS" default="dist" basedir=".">
-    <description>
-        JSS Build File
-    </description>
+  <description>
+	JSS Build File
+  </description>
+	
   <!-- set global properties for this build -->
   <property name="src" location="src"/>
   <property name="build" location="build"/>
@@ -39,7 +41,7 @@
     <!-- Put everything in ${build} into the jss-${DSTAMP}.jar file -->
     <zip destfile="${dist}/jss-${version}.zip" basedir="${build}" update="true" />
   </target>
-
+  	
   <target name="clean" description="Clean up" >
     <!-- Delete the ${build} and ${dist} directory trees -->
     <delete dir="${build}"/>
