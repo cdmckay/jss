@@ -538,6 +538,20 @@ jQuery.extend(
 				alert(event.data.arguments.join(" "));
 			},
 			
+			"show": function(event)
+			{
+				var target = determineTarget(event);
+				var data = effectPreprocessor(event.data);		
+				$(target).show();
+			},
+			
+			"hide": function(event)
+			{
+				var target = determineTarget(event);
+				var data = effectPreprocessor(event.data);		
+				$(target).hide();
+			},
+			
 			"fade-in": function(event)
 			{
 				var target = determineTarget(event);
