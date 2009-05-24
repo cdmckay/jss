@@ -9,7 +9,7 @@
 		</summary>
 		<example><![CDATA[
 $.jss.declare({
-  "#alert":
+  "#example":
   {
     click: "alert This is an alert.",
     click: "alert 'This is the same alert.'"
@@ -21,14 +21,15 @@ $.jss.declare({
 		<name>fade-in</name>
 		<selector />
 		<param optional="true">speed</param>
+		<param optional="true">!callback</param>
 		<summary>
 			Fade in all matched elements by adjusting their opacity and firing an optional callback after completion.
 		</summary>
 		<example><![CDATA[
 $.jss.declare({
-  "#fade-in":
+  "#example":
   {
-    // Fade in #fade-in when clicked.
+    // Fade in #example when clicked.
     click: "fade-in",
 
     // Fade in #fade-in-target when clicked.
@@ -47,14 +48,15 @@ $.jss.declare({
 		<name>fade-out</name>
 		<selector />
 		<param optional="true">speed</param>
+		<param optional="true">!callback</param>
 		<summary>
 			Fade out all matched elements by adjusting their opacity to 0, then setting display to "none" and firing an optional callback after completion.
 		</summary>
 		<example><![CDATA[
 $.jss.declare({
-  "#fade-out":
+  "#example":
   {
-    // Fade out #fade-out when clicked.
+    // Fade out #example when clicked.
     click: "fade-out",
 
     // Fade out #fade-out-target when clicked.
@@ -65,6 +67,59 @@ $.jss.declare({
 	
     // Fade out #fade-out-target over 1000 ms when clicked.
     click: "fade-out (#fade-out-target) 1000"
+  }
+});			
+		]]></example>
+	</command>
+	<command>
+		<name>fade-to</name>
+		<selector />
+		<param>opacity</param>
+		<param>speed</param>		
+		<param optional="true">!callback</param>
+		<summary>
+			Fade the opacity of all matched elements to a specified opacity and firing an optional callback after completion.
+			Only the opacity is adjusted for this animation, meaning that all of the matched elements should already have some form of height and width associated with them.
+		</summary>
+		<example><![CDATA[
+$.jss.declare({
+  "#example":
+  {
+    // Fade out #example when clicked.
+    click: "fade-to 0",
+
+    // Fade #fade-to-target to 50% opacity when clicked.
+    click: "fade-to (#fade-to-target) 0.5",
+	
+    // Fade out #fade-to-target fast when clicked.
+    click: "fade-to (#fade-to-target) 0 fast",
+	
+    // Fade #fade-to-target to 50% opacity over 1000 ms when clicked.
+    click: "fade-to (#fade-to-target) 0.5 1000"
+  }
+});			
+		]]></example>
+	</command>
+	<command>
+		<name>slide-down</name>
+		<selector />
+		<param optional="true">speed</param>		
+		<param optional="true">!callback</param>
+		<summary>
+			Reveal all matched elements by adjusting their height and firing an optional callback after completion.
+		</summary>
+		<example><![CDATA[
+$.jss.declare({
+  "#example":
+  {   
+    // Slide #slide-down-target down.
+    click: "slide-down (#slide-down-target)",
+	
+    // Slide #slide-down-target down fast when clicked.
+    click: "slide-down (#slide-down-target) fast",
+	
+    // Slide #slide-down-target down over 1000 ms when clicked.
+    click: "slide-down (#slide-down-target) 1000"
   }
 });			
 		]]></example>

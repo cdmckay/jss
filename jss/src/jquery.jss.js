@@ -18,8 +18,18 @@
  * @param {Boolean} events If false, event properties will not be parsed.
  * 
  */
-function processDeclartion(sheet, blocksel, prop, value)
+function processDeclaration(sheet, blocksel, prop, value)
 {	
+	// Check if the value is an array.  If it is, then call each
+	// value.
+	if (value.constructor == Array)
+	{
+		for (var i = 0; i < value.length; i++)
+			processDeclaration(sheet, blocksel, prop, value[i]);
+			
+		return;
+	}
+
 	// See if value is an execution command.
 	if (value.substr(0, 1) == "!")
 	{		
@@ -72,7 +82,6 @@ function processDeclartion(sheet, blocksel, prop, value)
 		case "hover":
 		{			
 			var a = value.split(/[^\\]\|/);
-			alert(a);
 			processExpression(sheet, blocksel, "mouseenter", $.trim(a[0]));
 			processExpression(sheet, blocksel, "mouseleave", $.trim(a[1]));
 			break;
@@ -336,20 +345,7 @@ function processExpression(sheet, blocksel, prop, value)
 		
 	var argu   = parts.arguments;
 	var fnlist = parts.fnlist;
-	var cb     = fnlist[0];
-	
-	// The data to pass through.
-	var data = 
-	{ 
-		sheet:     sheet,
-		blocksel:  blocksel, 
-		prop:      prop,
-		value:     value,
-		selector:  parts.selector,
-		arguments: argu,			
-		callback:  sheet[cb],
-		fnlist:    fnlist
-	};
+	var cb     = fnlist[0];		
 	
 	// Create the command function.
 	var commandfunc = commandWrapper($.jss.command[parts.command]);		
@@ -361,9 +357,26 @@ function processExpression(sheet, blocksel, prop, value)
 		type: prop,
 		fn: commandfunc
 	});
+		
+	//alert([prop]);
 	
-	// Bind it.
-	$(blocksel).bind(prop, data, commandfunc);
+	$(blocksel).each(function()
+	{
+		// The data to pass through.
+		var data = 
+		{ 
+			sheet:     sheet,
+			blocksel:  blocksel, 
+			prop:      prop,
+			value:     value,
+			selector:  parts.selector,
+			arguments: argu.slice(0),			
+			callback:  sheet[cb],
+			fnlist:    fnlist.slice(0)
+		};
+		
+		$(this).bind(prop, data, commandfunc);
+	});	
 }
 
 function bindExpression()
@@ -435,10 +448,16 @@ function parseExpression(value)
 }
 
 function determineTarget(event)
-{
-	return (event.data.selector.length == 0)
-		? event.currentTarget
-		: event.data.selector;		
+{	
+	if (event.data.selector.length != 0)
+	{
+		//alert("selector");
+		return event.data.selector
+	}
+	
+	//alert("target");
+	return event.currentTarget;
+		
 }
 
 /**
@@ -449,6 +468,7 @@ function commandWrapper(commandFunction)
 {
 	return function(event)
 	{
+		//alert("wrap: " + $(event.currentTarget).attr("id"));
 		commandPreprocessor(event);
 		return commandFunction(event);
 	}
@@ -465,16 +485,15 @@ function commandPreprocessor(event)
 	var data = event.data;
 	
 	// Replace all attributes.
+	//var replacedArguments;
 	data.arguments = replaceAttributes(data.arguments, event.currentTarget, data.selector);
 	data.arguments = replaceData(data.arguments, event.currentTarget, data.selector);
 	
+	//var replacedFnlist;
 	data.fnlist = replaceAttributes(data.fnlist, event.currentTarget, data.selector);
 	data.fnlist = replaceData(data.fnlist, event.currentTarget, data.selector);
 	
-	// Replace all data.
-	// Not yet implemented.
-	
-	//return event;
+	return event;
 }
 
 /**
@@ -484,25 +503,37 @@ function commandPreprocessor(event)
  */
 function effectPreprocessor(data)
 {							
-	var speed   = data.arguments.length >= 1 ? data.arguments[0] : "normal";
-	var opacity = data.arguments.length >= 2 ? data.arguments[1] : undefined;
+	var val = data.arguments.length >= 1 ? data.arguments[0] : "normal";
+	var speed = speedPreprocessor(val);							
+						
+	return { 		
+		speed: speed,		
+		callback: data.callback
+	}	
+}
 
-	switch (speed)
+/**
+ * Converts a string into an integer value if it's 
+ * not one of the expected speed strings.
+ * @param {String} val
+ * @return An integer value.
+ * @type {Number}
+ */
+function speedPreprocessor(val)
+{
+	var ret;
+	switch (val)
 	{
 		case "slow":
 		case "normal":
 		case "fast":
+			ret = val;
 			break;
 			
 		default:
-			speed = parseInt(speed);
-	}							
-			
-	return { 		
-		speed: speed, 
-		opacity: opacity,
-		callback: data.callback
+			ret = parseInt(val);
 	}	
+	return ret;
 }
 
 /**
@@ -534,7 +565,7 @@ jQuery.extend(
 		command:
 		{
 			"alert": function(event)
-			{				
+			{	
 				alert(event.data.arguments.join(" "));
 			},
 			
@@ -562,15 +593,21 @@ jQuery.extend(
 			"fade-out": function(event)
 			{	
 				var target = determineTarget(event);
-				var data = effectPreprocessor(event.data);		
+				var data = effectPreprocessor(event.data);					
 				$(target).fadeOut(data.speed, data.callback);
 			},		
 			
 			"fade-to": function(event)
 			{
-				var target = determineTarget(event);
-				var data = effectPreprocessor(event.data);		
-				$(target).fadeTo(data.speed, data.opacity, data.callback);
+				var target = determineTarget(event);				
+				var data = event.data;
+				
+				var opacity = data.arguments.length >= 1 ? data.arguments[0] : undefined;	
+								
+				var val = data.arguments.length >= 2 ? data.arguments[1] : "normal";
+				var speed = speedPreprocessor(val);				
+
+				$(target).fadeTo(speed, opacity, data.callback);
 			},
 			
 			"slide-down": function(event)
@@ -652,27 +689,52 @@ jQuery.extend(
 			{
 				var target = determineTarget(event);
 				$(target).addClass(event.data.arguments.join(" "));		
-				$.jss.load();
+				//$.jss.load();
 			},		
 			
 			"remove-class": function(event)
 			{
 				var target = determineTarget(event);
 				$(target).removeClass(event.data.arguments.join(" "));
-				$.jss.load();
+				//$.jss.load();
 			},
 			
 			"toggle-class": function(event)
 			{
 				var target = determineTarget(event);
 				$(target).toggleClass(event.data.arguments.join(" "));
-				$.jss.load();
+				//$.jss.load();
 			},
 			
 			"trigger": function(event)
 			{
 				var target = determineTarget(event);
 				$(target).trigger(event.data.arguments[0]);				
+			},
+			
+			"redirect-to": function(event)
+			{				
+				var href = event.data.arguments[0];
+				location.href = href;
+			},
+			
+			"link-to": function(event)
+			{
+				var link  = event.data.arguments[0];
+				var force = event.data.arguments[1] == "force";				
+				
+				// If the link starts with something like http:// 
+				// or ftp:// then use redirect-to instead.
+				if ( !force && link.match(/^\w+:\/\//) )
+				{
+					this["redirect-to"](link);
+				}								
+				
+				var loc = location.href;
+				var newloc = 
+					location.href.substring(0, loc.lastIndexOf("/") + 1) +					
+					link;
+				location.href = newloc;
 			}
 		},				
 		
@@ -793,7 +855,7 @@ jQuery.extend(
 						for (var prop in block[i])
 						{							
 							value = block[i][prop];							
-							processDeclartion(sheet, blocksel, 
+							processDeclaration(sheet, blocksel, 
 								prop.replace( '_', '-', 'g' ), value);
 						}						
 					} // end for
@@ -804,7 +866,7 @@ jQuery.extend(
 					for (var prop in block)
 					{		
 						value = block[prop];
-						processDeclartion(sheet, blocksel, 
+						processDeclaration(sheet, blocksel, 
 							prop.replace( '_', '-' ), value);
 					}		
 				}			
