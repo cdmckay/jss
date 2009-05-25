@@ -345,7 +345,14 @@ function processExpression(sheet, blocksel, prop, value)
 		
 	var argu   = parts.arguments;
 	var fnlist = parts.fnlist;
-	var cb     = fnlist[0];		
+	var callback;
+	if (sheet[fnlist[0][0]] != undefined)
+	{
+		callback = function() 
+		{ 
+			return sheet[fnlist[0][0]].apply($.jss.command, fnlist[0].slice(1)); 
+		}
+	}	
 	
 	// Create the command function.
 	var commandfunc = commandWrapper($.jss.command[parts.command]);		
@@ -371,7 +378,7 @@ function processExpression(sheet, blocksel, prop, value)
 			value:     value,
 			selector:  parts.selector,
 			arguments: argu.slice(0),			
-			callback:  sheet[cb],
+			callback:  callback,
 			fnlist:    fnlist.slice(0)
 		};
 		
@@ -385,7 +392,7 @@ function bindExpression()
 }
 
 /** A regular expression breaking down a JSS expression. */
-var expression = /^([\w-]+)(\s+\((.+)\))?(.+?)?((\s+\!\w+)*)?$/i;
+var expression = /^([\w-]+)(\s+\((.+?)\))?(.+?)?((\s+\![\w-]+\s*.+?\s*)*)?$/i;
 
 /** A regular expression for finding quoted strings. */
 var quoteFinder = /'([^'\\]*(\\.[^'\\]*)*)'|"([^"\\]*(\\.[^"\\]*)*)"|([^'"\s]+)/ig;
@@ -425,18 +432,26 @@ function parseExpression(value)
 	}
 	
 	// The function arguments, if defined.
-	var tmp = $.trim(result[5]);
+	var tmp = $.trim(result[5]);	
 	var fnlist = [];
 	if (tmp != undefined)
 	{
-		fnlist = tmp.split(/\s+/);	
+		// Get rid of the starting !.
+		tmp = tmp.substr(1);
 		
-		// Remove the exclamation mark.
-		for (var i = 0; i < fnlist.length; i++)
+		// Split the string into functions.
+		var fnstr = tmp.split(/\s+\!/);	
+		
+		// Cycle through each function string, splitting it up.
+		// For example:
+		// "run-me arg1 arg2" will become ["run-me", "arg1", "arg2"]
+		for (var i = 0; i < fnstr.length; i++)
 		{
-			fnlist[i] = fnlist[i].substr(1);
+			fnlist[i] = fnstr[i].split(/\s+/);
 		}
 	}			
+	
+	//alert(command + ", " + fnlist);
 			
 	return { 
 		"command":   command,
