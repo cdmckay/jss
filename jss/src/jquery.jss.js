@@ -146,7 +146,7 @@ function replaceGeneric(expression, eventTarget, selector, regexp, getter)
 		// If an attribute is defined with an @ character, then
 		// always use the event target, regardless of whether
 		// or not a selector is defined.
-		if (temp[0] == "@")
+		if (temp.substr(0, 1) == "@")
 		{		
 			//attr = $selector.attr(temp.substr(1));
 			val = getter($eventTarget, temp.substr(1));
@@ -392,7 +392,7 @@ function bindExpression()
 }
 
 /** A regular expression breaking down a JSS expression. */
-var expression = /^([\w-]+)(\s+\((.+?)\))?(.+?)?((\s+\![\w-]+\s*.+?\s*)*)?$/i;
+var expression = /^([\w-]+)((\s+\((.+?)\))?\s+(.+?)?((\s+\![\w-]+\s*.+?\s*)*)?)?$/i;
 
 /** A regular expression for finding quoted strings. */
 var quoteFinder = /'([^'\\]*(\\.[^'\\]*)*)'|"([^"\\]*(\\.[^"\\]*)*)"|([^'"\s]+)/ig;
@@ -412,10 +412,10 @@ function parseExpression(value)
 	var command = $.trim(result[1]);
 			
 	// Extract the selector and remove it.
-	var selector = $.trim(result[3]);	
+	var selector = $.trim(result[4]);	
 	
 	// The arguments.  
-	var artmp = $.trim(result[4]);
+	var artmp = $.trim(result[5]);
 	var arlist = [];
 	if (artmp != undefined)
 	{
@@ -432,7 +432,7 @@ function parseExpression(value)
 	}
 	
 	// The function arguments, if defined.
-	var tmp = $.trim(result[5]);	
+	var tmp = $.trim(result[6]);	
 	var fnlist = [];
 	if (tmp != undefined)
 	{

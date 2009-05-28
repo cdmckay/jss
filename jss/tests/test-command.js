@@ -152,19 +152,21 @@ test("set-html", function()
 	$.jss.declare(sheet);	
 	
 	// Test set-html under ideal circumstances.
+	// Set to lower case due to IE making all html uppercase for some reason.
 	var testHtml1 = "<strong>Hello.</strong>";	
 	sheet["#test1"]["click"] = "set-html " + testHtml1;
 	$.jss.load();	
 	$test1.html("<strong>Good-bye</strong>");
 	$test1.click();
-	equals($test1.html(), testHtml1, "Ideal circumstances, see if HTML was set");
+	equals($test1.html().toLowerCase(), testHtml1.toLowerCase(), "Ideal circumstances, see if HTML was set");
 	
 	// Test set-html with two arguments under ideal circumstances.
+	// Set to lower case due to IE making all html uppercase for some reason.
 	var testHtml2 = "<strong>Hello.</strong> <em>Good riddance.</em>";	
 	sheet["#test1"]["click"] = "set-html " + testHtml2;
 	$.jss.load();	
 	$test1.html("<strong>Good-bye</strong>");
 	$test1.click();
-	equals($test1.html(), testHtml2, "Ideal circumstances with two arguments, see if HTML was set");
+	equals($test1.html().toLowerCase(), testHtml2.toLowerCase(), "Ideal circumstances with two arguments, see if HTML was set");
 		
 });
