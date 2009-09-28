@@ -23,7 +23,7 @@ test("set-attr and set-data", function()
 		$test1[remove]("test");
 		$test1.click();
 		equals($test1[set]("test"), teststr1, "Check for random test string");
-		$test1.unbind();
+		$.jss.clear();
 		
 		// Add an extra parameter to set-attr and see if it still works.
 		sheet["#test1"]["click"] = command + " test " + teststr1 + " extra";
@@ -31,7 +31,7 @@ test("set-attr and set-data", function()
 		$test1[remove]("test");
 		$test1.click();
 		equals($test1[set]("test"), teststr1 + " extra", "Add third parameter, check for random test string");	
-		$test1.unbind();	
+		$.jss.clear();
 		
 		// Try it with a selector.
 		sheet["#test1"]["click"] = command + " (#test2) test " + teststr2;
@@ -39,7 +39,7 @@ test("set-attr and set-data", function()
 		$test2[remove]("test");
 		$test1.click();
 		equals($test2[set]("test"), teststr2, "Use selector, check for random test string");
-		$test1.unbind();
+		$.jss.clear();
 		
 		// Try it with a selector.
 		sheet["#test1"]["click"] = command + " (#test2) test " + teststr2 + " extra";
@@ -47,7 +47,7 @@ test("set-attr and set-data", function()
 		$test2[remove]("test");
 		$test1.click();
 		equals($test2[set]("test"), teststr2 + " extra", "Use selector, add third paramter, check for random test string");	
-		$test1.unbind();
+		$.jss.clear();
 	}
 	testCommand("set-attr", "attr", "removeAttr");
 	testCommand("set-data", "data", "removeData");

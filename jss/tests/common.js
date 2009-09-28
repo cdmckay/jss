@@ -1,3 +1,6 @@
+/** A global variable used by the JSS tests to share state information. */
+var __jss = {};
+
 /**
  * Create a random string with the given length.
  * @param {Object} length
